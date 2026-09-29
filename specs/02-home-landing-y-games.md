@@ -67,7 +67,7 @@ Convenciones:
 4. Crear `hooks/use-reveal.ts` (client) y `components/home/` con `hero.tsx` (incluye `FloatingSilhouettes`), `features.tsx` (incluye `FeatureIcon`), `games-preview.tsx` (`MiniCard`, enlaza a `/games/<id>` y "VER TODOS" a `/games`), `stats.tsx`. Componer en `app/page.tsx`. Verificar: `/` muestra esas secciones.
 5. Añadir `components/home/activity.tsx` (enlace "VER SALÓN" → `/salon`), `pricing.tsx` ("EMPEZAR GRATIS" → `/auth`) y `final-cta.tsx` ("INSERTAR MONEDA" → `/games`). Los CTA del hero: "EXPLORAR JUEGOS" → `/games`, "CREAR CUENTA" → `/auth`. Verificar: todos los enlaces navegan.
 6. Añadir `components/home/about.tsx` (con `HighlightIcon`, `id="acerca"`) y `components/home/contact-form.tsx` (client, simulado), debajo de las secciones del home. Verificar: enviar vacío hace shake; enviar completo muestra la terminal de éxito.
-7. Actualizar `components/nav.tsx`: enlaces Inicio/Biblioteca/Salón/Acerca de en escritorio y panel móvil; `isActive` (Inicio solo en `/`, Biblioteca en `/games*`). Ajustar redirects: "VOLVER AL VAULT" del detalle → `/games`; login e invitado en `/auth` siguen a `/`. Verificar: `npm run lint` y `npm run build` pasan.
+7. Actualizar `components/nav.tsx`: enlaces Inicio/Biblioteca/Salón/Acerca de en escritorio y panel móvil; `isActive` (Inicio nunca activo, incluso en `/`; Biblioteca en `/games*`). Ajustar redirects: "VOLVER AL VAULT" del detalle → `/games`; login e invitado en `/auth` siguen a `/`. Verificar: `npm run lint` y `npm run build` pasan.
 
 ---
 
@@ -84,7 +84,7 @@ Convenciones:
 - [ ] `/juegos`, `/juegos/<id>` y `/juegos/<id>/jugar` devuelven 404.
 - [ ] "VOLVER AL VAULT" en el detalle navega a `/games`.
 - [ ] Tras iniciar sesión o entrar como invitado en `/auth`, la redirección va a `/`.
-- [ ] El nav muestra Inicio, Biblioteca, Salón de la Fama y Acerca de; cada uno activo en su ruta (Biblioteca activo también en `/games/<id>` y `/games/<id>/jugar`; Inicio solo en `/`).
+- [ ] El nav muestra Inicio, Biblioteca, Salón de la Fama y Acerca de; Biblioteca y Salón activos en su ruta (Biblioteca también en `/games/<id>` y `/games/<id>/jugar`); en `/` ningún enlace queda activo (incluido Inicio).
 - [ ] "Acerca de" lleva a `/#acerca` y hace scroll a la sección de acerca de.
 - [ ] Las secciones con clase `reveal` aparecen (`.in`) al entrar en viewport.
 - [ ] En el formulario de contacto, enviar con algún campo vacío aplica `shake` y no muestra éxito; con todos rellenos muestra la terminal con `MENSAJE RECIBIDO ... GRACIAS, <NOMBRE EN MAYÚSCULAS>`; "ENVIAR OTRO MENSAJE" reinicia el formulario.
