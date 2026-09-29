@@ -1,23 +1,30 @@
 "use client";
 
-import { useState } from "react";
+import { useActionState, useState } from "react";
+import { sendContact } from "@/app/about/actions";
+import type { ContactState } from "@/lib/contact";
 
-const EMPTY = { name: "", email: "", msg: "" };
+const EMPTY = { name: "", email: "", message: "" };
+const INITIAL: ContactState = { status: "idle", values: EMPTY };
 
 export function ContactForm() {
-  const [form, setForm] = useState(EMPTY);
-  const [sent, setSent] = useState<string | null>(null);
-  const [shake, setShake] = useState(false);
+  // Cambiar la key remonta el formulario y reinicia el estado de la acción.
+  const [resetKey, setResetKey] = useState(0);
+  return <ContactFormInner key={resetKey} onReset={() => setResetKey((k) => k + 1)} />;
+}
 
-  const onSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!form.name.trim() || !form.email.trim() || !form.msg.trim()) {
-      setShake(true);
-      setTimeout(() => setShake(false), 400);
-      return;
-    }
-    setSent(form.name.trim());
-  };
+function ContactFormInner({ onReset }: { onReset: () => void }) {
+  const [state, formAction, pending] = useActionState(sendContact, INITIAL);
+  const [seen, setSeen] = useState(state);
+  const [shaking, setShaking] = useState(false);
+
+  // Cada respuesta nueva `invalid` dispara un shake.
+  if (state !== seen) {
+    setSeen(state);
+    setShaking(state.status === "invalid");
+  }
+
+  const values = state.status === "success" ? EMPTY : state.values;
 
   return (
     <section className="about-contact reveal">
@@ -36,15 +43,20 @@ export function ContactForm() {
           </div>
         </div>
 
-        <form className={"contact-form" + (shake ? " shake" : "")} onSubmit={onSubmit} noValidate>
-          {!sent ? (
+        <form
+          className={"contact-form" + (shaking ? " shake" : "")}
+          action={formAction}
+          onAnimationEnd={() => setShaking(false)}
+          noValidate
+        >
+          {state.status !== "success" ? (
             <>
               <div className="field">
                 <label htmlFor="contact-name">NOMBRE</label>
                 <input
                   id="contact-name"
-                  value={form.name}
-                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  name="name"
+                  defaultValue={values.name}
                   placeholder="px_kai"
                 />
               </div>
@@ -52,9 +64,9 @@ export function ContactForm() {
                 <label htmlFor="contact-email">CORREO ELECTRÓNICO</label>
                 <input
                   id="contact-email"
+                  name="email"
                   type="email"
-                  value={form.email}
-                  onChange={(e) => setForm({ ...form, email: e.target.value })}
+                  defaultValue={values.email}
                   placeholder="jugador@vault.gg"
                 />
               </div>
@@ -63,13 +75,31 @@ export function ContactForm() {
                 <textarea
                   id="contact-msg"
                   rows={5}
-                  value={form.msg}
-                  onChange={(e) => setForm({ ...form, msg: e.target.value })}
+                  name="message"
+                  defaultValue={values.message}
                   placeholder="Cuéntanos qué tienes en mente…"
                 ></textarea>
               </div>
-              <button className="btn xl press" type="submit" style={{ width: "100%" }}>
-                ▶  ENVIAR MENSAJE
+              <input
+                name="website"
+                type="text"
+                tabIndex={-1}
+                autoComplete="off"
+                aria-hidden="true"
+                style={{ position: "absolute", left: "-9999px", width: 1, height: 1, opacity: 0 }}
+              />
+              {state.status === "error" && (
+                <p className="form-error" role="alert">
+                  {state.message}
+                </p>
+              )}
+              <button
+                className="btn xl press"
+                type="submit"
+                disabled={pending}
+                style={{ width: "100%" }}
+              >
+                {pending ? "ENVIANDO…" : "▶  ENVIAR MENSAJE"}
               </button>
             </>
           ) : (
@@ -84,17 +114,14 @@ export function ContactForm() {
                 <div className="line dim">[OK] Validando contenido…</div>
                 <div className="line dim">[OK] Transmitiendo paquete…</div>
                 <div className="line success">
-                  &gt; MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {sent.toUpperCase()}.
+                  &gt; MENSAJE RECIBIDO. TE RESPONDEREMOS PRONTO. GRACIAS, {state.name.toUpperCase()}.
                   <span className="caret">_</span>
                 </div>
                 <div style={{ marginTop: 18 }}>
                   <button
                     className="btn ghost"
                     type="button"
-                    onClick={() => {
-                      setSent(null);
-                      setForm(EMPTY);
-                    }}
+                    onClick={onReset}
                   >
                     ENVIAR OTRO MENSAJE
                   </button>
