@@ -1,6 +1,6 @@
 # SPEC 02 — Home landing (home + acerca de) en `/` y biblioteca en `/games`
 
-> **Status:** Aprobado
+> **Status:** Implemented
 > **Depends on:** SPEC 01
 > **Date:** 2026-09-29
 > **Objective:** Reemplazar `/` por una única página landing (home + acerca de + contacto, portada de `references/templates/home-about/`) y mover la biblioteca de juegos, el detalle y el reproductor a `/games`.
