@@ -8,7 +8,7 @@ import type { Game } from "@/lib/data";
 export function GameCard({ game }: { game: Game }) {
   const router = useRouter();
   const tiltRef = useRef<HTMLDivElement>(null);
-  const href = `/juegos/${game.id}`;
+  const href = `/games/${game.id}`;
 
   const onMove = (e: React.MouseEvent) => {
     const el = tiltRef.current;
