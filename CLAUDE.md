@@ -24,3 +24,6 @@ No test runner configured.
 - Next.js 16.3.7 (App Router, `app/` at repo root, no `src/`), React 19, TypeScript, Tailwind CSS v4 (via `@tailwindcss/postcss`; `@import "tailwindcss"` in `app/globals.css`).
 - Path alias `@/*` → repo root.
 - Next docs offline: `node_modules/next/dist/docs/` (01-app, 02-pages, 03-architecture, 04-community). Consult before writing Next code — see AGENTS.md.
+
+## Skills 
+Always use the frontend design skill when you try to design a user interface. 
