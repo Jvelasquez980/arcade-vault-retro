@@ -12,6 +12,8 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Prototipo CDN de referencia, no es código de la app.
+    "references/**",
   ]),
 ]);
 
