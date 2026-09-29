@@ -6,6 +6,8 @@ import { Stats } from "@/components/home/stats";
 import { Activity } from "@/components/home/activity";
 import { Pricing } from "@/components/home/pricing";
 import { FinalCta } from "@/components/home/final-cta";
+import { About } from "@/components/home/about";
+import { ContactForm } from "@/components/home/contact-form";
 
 export default function Home() {
   return (
@@ -18,6 +20,10 @@ export default function Home() {
       <Activity />
       <Pricing />
       <FinalCta />
+      <div className="about">
+        <About />
+        <ContactForm />
+      </div>
     </div>
   );
 }
