@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useRef } from "react";
-import type { Game } from "@/lib/data";
+import type { Game } from "@/lib/catalog-shared";
 
 export function GameCard({ game }: { game: Game }) {
   const router = useRouter();
