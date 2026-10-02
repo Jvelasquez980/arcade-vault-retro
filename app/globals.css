@@ -506,6 +506,25 @@ a { color: inherit; text-decoration: none; }
   text-shadow: 0 0 8px var(--yellow);
 }
 
+.cover-asteroids { background: radial-gradient(circle at 50% 50%, #02122a, #000); }
+.cover-asteroids::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 20% 28%, transparent 0 15px, #dff 16px 17px, transparent 18px),
+    radial-gradient(circle at 78% 58%, transparent 0 24px, #dff 25px 26px, transparent 27px),
+    radial-gradient(circle at 46% 82%, transparent 0 11px, #dff 12px 13px, transparent 14px),
+    radial-gradient(circle at 86% 20%, var(--cyan) 0 2px, transparent 3px),
+    radial-gradient(circle at 10% 74%, var(--cyan) 0 2px, transparent 3px);
+  filter: drop-shadow(0 0 5px rgba(0,245,255,0.6));
+}
+.cover-asteroids::before {
+  content: "▲";
+  position: absolute; left: 47%; top: 42%;
+  color: var(--cyan); font-size: 22px;
+  text-shadow: 0 0 8px var(--cyan);
+}
+
 .cover-rana { background: linear-gradient(180deg,#001f2a,#0a0a18); }
 .cover-rana::after {
   content: "";
@@ -682,6 +701,14 @@ a { color: inherit; text-decoration: none; }
 .crt-bottom .led::before {
   content: ""; width: 8px; height: 8px; border-radius: 50%;
   background: var(--green); box-shadow: 0 0 6px var(--green);
+}
+
+/* canvas del motor real (Asteroids): llena la pantalla CRT 4:3, lógica interna 800x600 */
+.asteroids-canvas {
+  position: absolute; inset: 0;
+  display: block;
+  width: 100%; height: 100%;
+  background: #000;
 }
 
 /* fake in-screen game */

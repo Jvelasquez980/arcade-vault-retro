@@ -83,6 +83,17 @@ export const GAMES: Game[] = [
     plays: "15.6K",
   },
   {
+    id: "asteroids",
+    title: "ASTEROIDS",
+    short: "Parte las rocas antes de que te alcancen.",
+    long: "Pilota tu nave en un campo de asteroides sin bordes: lo que sale por un lado entra por el otro. Cada roca grande se parte en medianas y luego en pequeñas. Tienes 3 vidas; recoge el 3x para disparar triple.",
+    cat: "SHOOTER",
+    cover: "cover-asteroids",
+    color: "cyan",
+    best: 0,
+    plays: "0",
+  },
+  {
     id: "ranaria",
     title: "RANARIA",
     short: "Cruza la autopista de pixeles.",
