@@ -31,6 +31,7 @@ No test runner configured.
 - Datos estáticos de juegos y rankings en `lib/data.ts`; contenido del home en `lib/home-data.ts`. `components/game-player.tsx` simula partidas (puntaje aleatorio), no hay juegos reales.
 - Rutas: `/`, `/games`, `/games/[id]`, `/games/[id]/jugar`, `/salon`, `/auth`, `/about`. Layout raíz (`app/layout.tsx`) monta Nav/Footer/SessionProvider y las fuentes vía `next/font`.
 - Contacto: `app/about/actions.ts` (Server Action `sendContact`, `useActionState` en `components/about/contact-form.tsx`) valida con `lib/contact.ts` y envía con Resend. Requiere `.env.local` con `RESEND_API_KEY`, `CONTACT_TO_EMAIL`, `CONTACT_FROM_EMAIL` (ver `.env.example`); con `onboarding@resend.dev` solo entrega al correo dueño de la cuenta.
+- Supabase (solo infraestructura, aún sin tablas ni auth real; convive con la sesión mock): clientes en `lib/supabase/` (`client.ts` navegador, `server.ts` servidor/Server Actions, async y por petición; `proxy.ts` helper `updateSession`). `proxy.ts` en la raíz (convención Next 16, no `middleware.ts`) solo refresca la sesión con `getClaims()`, no protege rutas. Variables en `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clave `sb_publishable_...`; nunca claves privilegiadas).
 - Estilos: tokens y clases `av-*` en `app/globals.css` (tema retro/neón: cyan/magenta/yellow) expuestos a Tailwind vía `@theme inline`.
 
 ## Skills 
