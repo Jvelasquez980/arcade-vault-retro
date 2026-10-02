@@ -1,6 +1,6 @@
 # SPEC 04 — Integración base de Supabase (clientes SSR + sesión por cookies)
 
-> **Status:** Aprobado
+> **Status:** Implementado
 > **Depends on:** SPEC 01, SPEC 02, SPEC 03
 > **Date:** 2026-10-01
 > **Objective:** Dejar Supabase conectado al proyecto Next.js (paquetes, variables de entorno, clientes de navegador/servidor y refresco de sesión en `proxy.ts`) sin migrar todavía ninguna funcionalidad existente.
@@ -81,7 +81,7 @@ Convenciones:
 3. Crear `lib/supabase/client.ts` con `createBrowserClient`. Verificar: build compila.
 4. Crear `lib/supabase/server.ts` con `createServerClient` y `cookies()` (`await cookies()` según Next 16; `setAll` envuelto en try/catch para Server Components). Verificar: build compila.
 5. Crear `lib/supabase/proxy.ts` (`updateSession`) y `proxy.ts` en la raíz con `matcher` que excluye `_next/static`, `_next/image`, `favicon.ico` e imágenes. Verificar: `npm run dev` arranca y `/`, `/games`, `/about` cargan sin errores.
-6. Crear `app/api/supabase-health/route.ts` temporal: usa el cliente de servidor y devuelve `{ ok: true }` si `supabase.auth.getUser()` responde sin error de red/configuración (sin sesión es válido). Verificar: `GET /api/supabase-health` → 200 `{ "ok": true }`; con la URL rota → 500 `{ "ok": false }`.
+6. Crear `app/api/supabase-health/route.ts` temporal: hace `fetch` a `${NEXT_PUBLIC_SUPABASE_URL}/auth/v1/health` con el header `apikey` (sin sesión `getUser()` no hace red, así que no basta para detectar una URL rota) y además usa el cliente de servidor; devuelve `{ ok: true }` si el health responde OK y `supabase.auth.getUser()` no falla salvo por falta de sesión (`AuthSessionMissingError`, válido). Verificar: `GET /api/supabase-health` → 200 `{ "ok": true }`; con la URL rota → 500 `{ "ok": false }`.
 7. Eliminar la ruta temporal, actualizar `CLAUDE.md` (Architecture: clientes en `lib/supabase/`, `proxy.ts`, variables) y correr `npm run lint` y `npm run build`.
 
 ---
