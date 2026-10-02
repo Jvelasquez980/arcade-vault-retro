@@ -4,9 +4,10 @@ import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
 import { useSession } from "@/components/session-provider";
-import type { Game } from "@/lib/data";
+import type { Game } from "@/lib/catalog-shared";
 import type { AsteroidsController, AsteroidsEvents } from "@/lib/games/asteroids/engine";
-import { saveScore } from "@/lib/scores";
+import { getPlayerName, setPlayerName } from "@/lib/player-name";
+import { submitScore } from "@/app/games/[id]/jugar/actions";
 
 export function GamePlayer({ game }: { game: Game }) {
   const { user } = useSession();
@@ -17,30 +18,20 @@ export function GamePlayer({ game }: { game: Game }) {
   const [over, setOver] = useState(false);
   const [typedName, setTypedName] = useState<string | null>(null);
   const [saved, setSaved] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [triple, setTriple] = useState(0);
   const controllerRef = useRef<AsteroidsController | null>(null);
 
-  // Solo Asteroids tiene motor real; el resto de juegos sigue simulado.
-  const isAsteroids = game.id === "asteroids";
-
-  // El nombre sigue a la sesión (que se hidrata tras el primer render) hasta que se edita.
+  // El nombre sigue a la sesión (que se hidrata tras el primer render) hasta que se edita
+  // o se precarga el recordado (av_player_name) al terminar la partida.
   const name = typedName ?? user?.name ?? "INVITADO";
 
-  useEffect(() => {
-    if (isAsteroids || over || paused) return;
-    const t = setInterval(
-      () => setScore((s) => s + Math.floor(10 + Math.random() * 90)),
-      220,
-    );
-    return () => clearInterval(t);
-  }, [isAsteroids, over, paused]);
-
-  useEffect(() => {
-    if (isAsteroids) return;
-    // Decorativo, portado tal cual del template.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    if (score > 0 && score % 2500 < 100) setLevel((l) => l + 1);
-  }, [isAsteroids, score]);
+  const openGameOver = () => {
+    const stored = getPlayerName();
+    if (stored) setTypedName((prev) => prev ?? stored);
+    setOver(true);
+  };
 
   const asteroidsEvents: AsteroidsEvents = {
     onScore: setScore,
@@ -49,7 +40,7 @@ export function GamePlayer({ game }: { game: Game }) {
     onTriple: setTriple,
     onGameOver: (finalScore) => {
       setScore(finalScore);
-      setOver(true);
+      openGameOver();
     },
   };
 
@@ -58,16 +49,14 @@ export function GamePlayer({ game }: { game: Game }) {
   }, []);
 
   const setPausedState = (next: boolean) => {
-    if (isAsteroids) {
-      if (next) controllerRef.current?.pause();
-      else controllerRef.current?.resume();
-    }
+    if (next) controllerRef.current?.pause();
+    else controllerRef.current?.resume();
     setPaused(next);
   };
 
   // Atajo P (el motor no tiene tecla de pausa propia).
   useEffect(() => {
-    if (!isAsteroids || over) return;
+    if (over) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.code !== "KeyP" || e.repeat) return;
       const t = e.target;
@@ -82,15 +71,15 @@ export function GamePlayer({ game }: { game: Game }) {
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
-  }, [isAsteroids, over, paused]);
+  }, [over, paused]);
 
   const finish = () => {
-    if (isAsteroids) controllerRef.current?.pause();
-    setOver(true);
+    controllerRef.current?.pause();
+    openGameOver();
   };
 
   const restart = () => {
-    if (isAsteroids) controllerRef.current?.restart();
+    controllerRef.current?.restart();
     setTriple(0);
     setScore(0);
     setLives(3);
@@ -98,11 +87,27 @@ export function GamePlayer({ game }: { game: Game }) {
     setPaused(false);
     setOver(false);
     setSaved(false);
+    setSaving(false);
+    setSaveError(null);
   };
 
-  const save = () => {
-    saveScore({ game: game.id, score, name });
-    setSaved(true);
+  const save = async () => {
+    if (saving || saved) return;
+    setSaving(true);
+    setSaveError(null);
+    try {
+      const res = await submitScore({ gameId: game.id, name: name.trim(), score });
+      if (res.ok) {
+        setPlayerName(name.trim());
+        setSaved(true);
+      } else {
+        setSaveError(res.error);
+      }
+    } catch {
+      setSaveError("No se pudo guardar la puntuación. Inténtalo de nuevo.");
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -125,7 +130,7 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Nivel</div>
             <div className="v">{String(level).padStart(2, "0")}</div>
           </div>
-          {isAsteroids && triple > 0 && (
+          {triple > 0 && (
             <div className="hud-stat">
               <div className="l">Triple</div>
               <div className="v" style={{ color: "var(--cyan)" }}>{triple.toFixed(1)}s</div>
@@ -143,17 +148,7 @@ export function GamePlayer({ game }: { game: Game }) {
 
       <div className="crt">
         <div className="crt-screen">
-          {isAsteroids ? (
-            <AsteroidsCanvas events={asteroidsEvents} onReady={onEngineReady} />
-          ) : (
-            <div className="game-arena">
-              <div className="grid-floor"></div>
-              <div className="enemy e1"></div>
-              <div className="enemy e2"></div>
-              <div className="enemy e3"></div>
-              <div className="player-ship"></div>
-            </div>
-          )}
+          <AsteroidsCanvas events={asteroidsEvents} onReady={onEngineReady} />
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
               <div>
@@ -190,13 +185,21 @@ export function GamePlayer({ game }: { game: Game }) {
               <div className="input-row">
                 <input
                   value={name}
-                  onChange={(e) => setTypedName(e.target.value.toUpperCase().slice(0, 10))}
-                  placeholder="TUS INICIALES"
+                  onChange={(e) => setTypedName(e.target.value.slice(0, 12))}
+                  placeholder="TU NOMBRE"
+                  maxLength={12}
                 />
-                <button className="btn yellow" onClick={save}>GUARDAR PUNTUACIÓN</button>
+                <button className="btn yellow" onClick={save} disabled={saving}>
+                  {saving ? "GUARDANDO…" : "GUARDAR PUNTUACIÓN"}
+                </button>
               </div>
             ) : (
               <div className="toast-saved">▸ PUNTUACIÓN GUARDADA_</div>
+            )}
+            {saveError && !saved && (
+              <div style={{ color: "var(--magenta)", fontSize: 13, marginTop: 10 }}>
+                {saveError}
+              </div>
             )}
             <div className="actions">
               <button className="btn" onClick={restart}>JUGAR DE NUEVO</button>

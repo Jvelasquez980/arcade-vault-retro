@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { GAMES, type Game } from "@/lib/data";
+import { listGames, type Game } from "@/lib/catalog";
 
 function MiniCard({ game }: { game: Game }) {
   return (
@@ -13,7 +13,9 @@ function MiniCard({ game }: { game: Game }) {
   );
 }
 
-export function GamesPreview() {
+export async function GamesPreview() {
+  const games = await listGames({ limit: 6 });
+
   return (
     <section className="home-section reveal">
       <div className="section-head">
@@ -22,7 +24,7 @@ export function GamesPreview() {
         <div className="section-rule"></div>
       </div>
       <div className="mini-rail">
-        {GAMES.slice(0, 6).map((g) => (
+        {games.map((g) => (
           <MiniCard key={g.id} game={g} />
         ))}
       </div>

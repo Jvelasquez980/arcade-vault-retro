@@ -1,4 +1,4 @@
-import type { Accent } from "@/lib/data";
+import type { Accent } from "@/lib/catalog-shared";
 
 export type ActivityRow = { p: string; g: string; s: number; t: string; c: Accent };
 export type TopRow = { r: number; p: string; s: number };
