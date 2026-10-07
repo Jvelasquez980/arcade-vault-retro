@@ -3,10 +3,6 @@
 
 import type { ExtraStat, GameController, GameEngineDef, GameEvents } from "../types";
 
-// Alias de compatibilidad hasta que GamePlayer use el contrato común (SPEC 07, paso 4).
-export type AsteroidsEvents = Required<Omit<GameEvents, "onStat">> & { onTriple: (secondsLeft: number) => void };
-export type AsteroidsController = GameController;
-
 const W = 800;
 const H = 600;
 

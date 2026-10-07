@@ -2,17 +2,19 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
-import { AsteroidsCanvas } from "@/components/games/asteroids-canvas";
+import { GameCanvas } from "@/components/games/game-canvas";
 import { useSession } from "@/components/session-provider";
 import type { Game } from "@/lib/catalog-shared";
-import type { AsteroidsController, AsteroidsEvents } from "@/lib/games/asteroids/engine";
+import { ENGINES } from "@/lib/games/registry";
+import type { GameController, GameEngineDef, GameEvents } from "@/lib/games/types";
 import { getPlayerName, setPlayerName } from "@/lib/player-name";
 import { submitScore } from "@/app/games/[id]/jugar/actions";
 
 export function GamePlayer({ game }: { game: Game }) {
   const { user } = useSession();
   const [score, setScore] = useState(0);
-  const [lives, setLives] = useState(3);
+  const [def, setDef] = useState<GameEngineDef | null>(null);
+  const [lives, setLives] = useState<number | null>(null);
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
   const [over, setOver] = useState(false);
@@ -20,8 +22,21 @@ export function GamePlayer({ game }: { game: Game }) {
   const [saved, setSaved] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
-  const [triple, setTriple] = useState(0);
-  const controllerRef = useRef<AsteroidsController | null>(null);
+  const [stats, setStats] = useState<Record<string, number>>({});
+  const controllerRef = useRef<GameController | null>(null);
+
+  // Carga el def del motor registrado para este juego.
+  useEffect(() => {
+    let cancelled = false;
+    ENGINES[game.id]?.().then((d) => {
+      if (!cancelled) setDef(d);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [game.id]);
+
+  const livesShown = lives ?? def?.initialLives ?? 0;
 
   // El nombre sigue a la sesión (que se hidrata tras el primer render) hasta que se edita
   // o se precarga el recordado (av_player_name) al terminar la partida.
@@ -33,18 +48,18 @@ export function GamePlayer({ game }: { game: Game }) {
     setOver(true);
   };
 
-  const asteroidsEvents: AsteroidsEvents = {
+  const events: GameEvents = {
     onScore: setScore,
     onLives: setLives,
     onLevel: setLevel,
-    onTriple: setTriple,
+    onStat: (key, value) => setStats((prev) => ({ ...prev, [key]: value ?? 0 })),
     onGameOver: (finalScore) => {
       setScore(finalScore);
       openGameOver();
     },
   };
 
-  const onEngineReady = useCallback((c: AsteroidsController | null) => {
+  const onEngineReady = useCallback((c: GameController | null) => {
     controllerRef.current = c;
   }, []);
 
@@ -80,9 +95,9 @@ export function GamePlayer({ game }: { game: Game }) {
 
   const restart = () => {
     controllerRef.current?.restart();
-    setTriple(0);
+    setStats({});
     setScore(0);
-    setLives(3);
+    setLives(null);
     setLevel(1);
     setPaused(false);
     setOver(false);
@@ -122,20 +137,30 @@ export function GamePlayer({ game }: { game: Game }) {
             <div className="l">Puntuación</div>
             <div className="v">{score.toLocaleString("es-ES")}</div>
           </div>
-          <div className="hud-stat lives">
-            <div className="l">Vidas</div>
-            <div className="v">{"♥ ".repeat(lives).trim() || "—"}</div>
-          </div>
-          <div className="hud-stat level">
-            <div className="l">Nivel</div>
-            <div className="v">{String(level).padStart(2, "0")}</div>
-          </div>
-          {triple > 0 && (
-            <div className="hud-stat">
-              <div className="l">Triple</div>
-              <div className="v" style={{ color: "var(--cyan)" }}>{triple.toFixed(1)}s</div>
+          {def?.initialLives !== undefined && (
+            <div className="hud-stat lives">
+              <div className="l">Vidas</div>
+              <div className="v">{"♥ ".repeat(livesShown).trim() || "—"}</div>
             </div>
           )}
+          {def?.showLevel && (
+            <div className="hud-stat level">
+              <div className="l">Nivel</div>
+              <div className="v">{String(level).padStart(2, "0")}</div>
+            </div>
+          )}
+          {def?.stats?.map((st) => {
+            const v = stats[st.key];
+            if (!v) return null;
+            return (
+              <div className="hud-stat" key={st.key}>
+                <div className="l">{st.label}</div>
+                <div className="v" style={st.color ? { color: `var(--${st.color})` } : undefined}>
+                  {st.format === "seconds" ? `${v.toFixed(1)}s` : Math.round(v).toLocaleString("es-ES")}
+                </div>
+              </div>
+            );
+          })}
         </div>
         <div className="hud-actions">
           <button className="btn yellow" onClick={() => !over && setPausedState(!paused)}>
@@ -147,8 +172,11 @@ export function GamePlayer({ game }: { game: Game }) {
       </div>
 
       <div className="crt">
-        <div className="crt-screen">
-          <AsteroidsCanvas events={asteroidsEvents} onReady={onEngineReady} />
+        <div
+          className="crt-screen"
+          style={def ? ({ "--game-ar": `${def.width} / ${def.height}` } as React.CSSProperties) : undefined}
+        >
+          {def && <GameCanvas def={def} events={events} onReady={onEngineReady} />}
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
               <div>
