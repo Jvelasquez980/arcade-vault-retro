@@ -30,7 +30,9 @@ export function AsteroidsCanvas({ events, onReady }: Props) {
       onScore: (v) => eventsRef.current.onScore(v),
       onLives: (v) => eventsRef.current.onLives(v),
       onLevel: (v) => eventsRef.current.onLevel(v),
-      onTriple: (v) => eventsRef.current.onTriple(v),
+      onStat: (k, v) => {
+        if (k === "triple") eventsRef.current.onTriple(v ?? 0);
+      },
       onGameOver: (v) => eventsRef.current.onGameOver(v),
     });
     const notify = onReadyRef.current;
