@@ -659,7 +659,7 @@ a { color: inherit; text-decoration: none; }
 }
 .crt-screen {
   position: relative;
-  aspect-ratio: 4 / 3;
+  aspect-ratio: var(--game-ar, 4 / 3);
   background: #000;
   border-radius: 12px / 28px;
   overflow: hidden;
@@ -703,8 +703,8 @@ a { color: inherit; text-decoration: none; }
   background: var(--green); box-shadow: 0 0 6px var(--green);
 }
 
-/* canvas del motor real (Asteroids): llena la pantalla CRT 4:3, lógica interna 800x600 */
-.asteroids-canvas {
+/* canvas de un motor real: llena la pantalla CRT; la proporción viene de --game-ar */
+.game-canvas {
   position: absolute; inset: 0;
   display: block;
   width: 100%; height: 100%;

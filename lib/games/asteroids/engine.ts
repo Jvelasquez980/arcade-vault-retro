@@ -1,20 +1,7 @@
 // Port a TS de references/templates/started-games/02-asteroids/game.js.
 // Sin estado global de módulo: todo vive dentro de createAsteroids().
 
-export type AsteroidsEvents = {
-  onScore: (score: number) => void;
-  onLives: (lives: number) => void;
-  onLevel: (level: number) => void;
-  onTriple: (secondsLeft: number) => void; // 0 cuando no está activo
-  onGameOver: (finalScore: number) => void;
-};
-
-export type AsteroidsController = {
-  pause: () => void;
-  resume: () => void;
-  restart: () => void; // reinicia partida y reanuda
-  destroy: () => void; // cancela rAF y quita listeners
-};
+import type { ExtraStat, GameController, GameEngineDef, GameEvents } from "../types";
 
 const W = 800;
 const H = 600;
@@ -340,8 +327,8 @@ type GameState = "playing" | "dead" | "gameover";
 
 export function createAsteroids(
   canvas: HTMLCanvasElement,
-  events: AsteroidsEvents,
-): AsteroidsController {
+  events: GameEvents,
+): GameController {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return { pause() {}, resume() {}, restart() {}, destroy() {} };
@@ -383,16 +370,16 @@ export function createAsteroids(
     }
     if (lives !== emittedLives) {
       emittedLives = lives;
-      events.onLives(lives);
+      events.onLives?.(lives);
     }
     if (level !== emittedLevel) {
       emittedLevel = level;
-      events.onLevel(level);
+      events.onLevel?.(level);
     }
     const triple = Math.round(ship.tripleShot * 10) / 10;
     if (triple !== emittedTriple) {
       emittedTriple = triple;
-      events.onTriple(triple);
+      events.onStat?.("triple", triple);
     }
   }
 
@@ -661,3 +648,16 @@ export function createAsteroids(
     },
   };
 }
+
+const ASTEROIDS_STATS: ExtraStat[] = [
+  { key: "triple", label: "Triple", color: "cyan", format: "seconds" },
+];
+
+export const asteroidsDef: GameEngineDef = {
+  width: W,
+  height: H,
+  initialLives: 3,
+  showLevel: true,
+  stats: ASTEROIDS_STATS,
+  create: createAsteroids,
+};

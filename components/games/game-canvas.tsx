@@ -1,18 +1,19 @@
 "use client";
 
 import { useEffect, useRef } from "react";
-import {
-  createAsteroids,
-  type AsteroidsController,
-  type AsteroidsEvents,
-} from "@/lib/games/asteroids/engine";
+import type {
+  GameController,
+  GameEngineDef,
+  GameEvents,
+} from "@/lib/games/types";
 
 type Props = {
-  events: AsteroidsEvents;
-  onReady: (controller: AsteroidsController | null) => void;
+  def: GameEngineDef;
+  events: GameEvents;
+  onReady: (controller: GameController | null) => void;
 };
 
-export function AsteroidsCanvas({ events, onReady }: Props) {
+export function GameCanvas({ def, events, onReady }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventsRef = useRef(events);
   const onReadyRef = useRef(onReady);
@@ -26,12 +27,12 @@ export function AsteroidsCanvas({ events, onReady }: Props) {
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    const controller = createAsteroids(canvas, {
+    const controller = def.create(canvas, {
       onScore: (v) => eventsRef.current.onScore(v),
-      onLives: (v) => eventsRef.current.onLives(v),
-      onLevel: (v) => eventsRef.current.onLevel(v),
-      onTriple: (v) => eventsRef.current.onTriple(v),
       onGameOver: (v) => eventsRef.current.onGameOver(v),
+      onLives: (v) => eventsRef.current.onLives?.(v),
+      onLevel: (v) => eventsRef.current.onLevel?.(v),
+      onStat: (k, v) => eventsRef.current.onStat?.(k, v),
     });
     const notify = onReadyRef.current;
     notify(controller);
@@ -39,7 +40,14 @@ export function AsteroidsCanvas({ events, onReady }: Props) {
       controller.destroy();
       notify(null);
     };
-  }, []);
+  }, [def]);
 
-  return <canvas ref={canvasRef} className="asteroids-canvas" width={800} height={600} />;
+  return (
+    <canvas
+      ref={canvasRef}
+      className="game-canvas"
+      width={def.width}
+      height={def.height}
+    />
+  );
 }
