@@ -23,12 +23,15 @@ Juegos disponibles:
 
 **No escribes código de la app.** Produces `specs/NN-juego-<id>.md` a partir de `template.md` (mismo directorio), listo para `/spec-impl`. Responde en español.
 
+**Base: este skill es una especialización de `/spec`.** Antes de nada lee `../spec/SKILL.md` y `../spec/template.md` y sigue sus reglas de creación de specs (numeración, header, secciones, estado `Draft`/`Borrador`, validación de dependencias, `.spec-config.yml`, "no implementar tras guardar"). Lo que este skill define abajo (fases 2–3, plantilla de juego) se aplica sobre esa base; en conflicto, manda este skill.
+
 `$ARGUMENTS` = carpeta del juego (ej. `03-tetris`). Si viene vacío o no existe en la lista, pregunta cuál con `AskUserQuestion`.
 
 ## Fase 1 — Contexto
 
+0. Lee `../spec/SKILL.md` y `../spec/template.md` (skill base `/spec`) y `integrar-juego/template.md`.
 1. Lee `CLAUDE.md` y `AGENTS.md`.
-2. Lee `specs/05-juego-asteroids.md`, `specs/06-leaderboard-y-tabla-games.md` y `specs/07-registro-de-motores.md`.
+2. Lee `specs/05-juego-asteroids.md`, `specs/06-leaderboard-y-tabla-games.md` y `specs/07-registro-de-motores.md`, más los dos specs más recientes de `specs/` si no son esos (convenciones de idioma, estados y encabezados, como exige `/spec`).
 3. **Prerrequisito:** `specs/07` debe estar `Implementado` y existir `lib/games/types.ts` y `lib/games/registry.ts`. Si no, detente y dile al usuario que corra `/spec-impl 07` primero.
 4. Lee `lib/games/types.ts`, `lib/games/registry.ts` y `lib/games/asteroids/engine.ts` (referencia del patrón de port).
 5. Si ya existe un spec para ese juego en `specs/`, avisa y pregunta antes de continuar.
@@ -56,11 +59,14 @@ Para la descripción `short`/`long` propón texto en español y deja que el usua
 
 ## Fase 4 — Escribir el spec
 
+Aplica la Fase 4 de `/spec` con estas particularidades:
+
 1. Número = máximo en `specs/` + 1, dos dígitos. Archivo: `specs/NN-juego-<id>.md`.
-2. Parte de `template.md`, sustituye todos los `<…>` con lo del análisis y las respuestas. No dejes huecos sin rellenar; si falta información, pregunta.
-3. `Status: Borrador`, `Depends on: SPEC 05, SPEC 06, SPEC 07`, fecha del contexto.
+2. Parte de `template.md` (que sigue la estructura de `../spec/template.md`: header, scope, data model, plan, criterios, decisiones, riesgos, "qué NO está"), sustituye todos los `<…>` con lo del análisis y las respuestas. No dejes huecos sin rellenar; si falta información, pregunta. Incluye la sección de decisiones tomadas y descartadas.
+3. `Status: Borrador`, `Depends on: SPEC 05, SPEC 06, SPEC 07`, fecha del contexto. Verifica que cada spec listado en `Depends on` exista en `specs/`.
 4. Escribe el archivo sin pedir permiso (solo pregunta si ya existe).
-5. Cierra con: ruta del spec, resumen de 3 líneas (stats extra, assets, exclusiones) y siguiente paso: `/spec-impl NN`.
+5. Si falta `specs/.spec-config.yml`, créalo con el contenido por defecto de `/spec`; si existe, no lo toques.
+6. Cierra con: ruta del spec, resumen de 3 líneas (stats extra, assets, exclusiones), recordatorio de que está en `Borrador` (pasar a `Aprobado` tras revisarlo) y siguiente paso: `/spec-impl NN`. Detente ahí: no propongas ni inicies la implementación.
 
 ## Reglas
 

@@ -1,6 +1,6 @@
 # SPEC 07 — Registro de motores y `GamePlayer` genérico
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 06
 > **Date:** 2026-10-07
 > **Objective:** Generalizar `GamePlayer` y `/games/[id]/jugar` con un contrato común de motor y un registro por id, para que añadir un juego sea registrar su motor sin tocar el reproductor.
