@@ -4,6 +4,7 @@ import type { GameEngineDef } from "./types";
 
 export const ENGINES: Record<string, () => Promise<GameEngineDef>> = {
   asteroids: () => import("./asteroids/engine").then((m) => m.asteroidsDef),
+  tetris: () => import("./tetris/engine").then((m) => m.tetrisDef),
 };
 
 export const hasEngine = (id: string) => id in ENGINES;
