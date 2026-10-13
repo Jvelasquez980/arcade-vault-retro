@@ -3,7 +3,7 @@
 > **Status:** Aprovado
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** 2026-10-13
-> **Objective:** Portar `references/templates/started-games/04-arkanoid/` a un motor TypeScript registrado en `ENGINES`, publicado en el catálogo y con leaderboard en `/games/arkanoid` y `/salon`.
+> **Objective:** Portar `references/started-games/04-arkanoid/` a un motor TypeScript registrado en `ENGINES`, publicado en el catálogo y con leaderboard en `/games/arkanoid` y `/salon`.
 
 ---
 

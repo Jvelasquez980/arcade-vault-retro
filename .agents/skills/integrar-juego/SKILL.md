@@ -1,6 +1,6 @@
 ---
 name: integrar-juego
-description: Genera el spec para integrar un juego de references/templates/started-games/ en Arcade Vault (motor TS con canvas, registro, fila en `games`, leaderboard). Solo escribe el spec; se implementa luego con /spec-impl.
+description: Genera el spec para integrar un juego de references/started-games/ en Arcade Vault (motor TS con canvas, registro, fila en `games`, leaderboard). Solo escribe el spec; se implementa luego con /spec-impl.
 disable-model-invocation: true
 argument-hint: "carpeta del juego en started-games, ej. 03-tetris"
 allowed-tools: Read, Glob, Grep, Write, AskUserQuestion, Bash(ls:*), Bash(cat:*), Bash(date:*)
@@ -17,7 +17,7 @@ Specs existentes:
 !`ls specs/ 2>/dev/null || echo "No existe specs/"`
 
 Juegos disponibles:
-!`ls references/templates/started-games/ 2>/dev/null`
+!`ls references/started-games/ 2>/dev/null`
 
 ---
 
@@ -38,7 +38,7 @@ Juegos disponibles:
 
 ## Fase 2 — Analizar el template
 
-Lee en `references/templates/started-games/$ARGUMENTS/`: `game.js` (y otros `.js`), `index.html`, `README.md`, `CLAUDE.md`, `style.css` si hay, y lista `assets/`. Extrae este checklist (va al spec, sin inventar):
+Lee en `references/started-games/$ARGUMENTS/`: `game.js` (y otros `.js`), `index.html`, `README.md`, `CLAUDE.md`, `style.css` si hay, y lista `assets/`. Extrae este checklist (va al spec, sin inventar):
 
 - Tamaño del canvas (`width`/`height`) y relación de aspecto.
 - Estado global y acceso al DOM (`getElementById`, `localStorage`, overlays) → a eliminar o mover a React.

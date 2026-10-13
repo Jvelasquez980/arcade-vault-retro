@@ -9,7 +9,7 @@
 
 ## Por qué existe este spec
 
-SPEC 05 y 06 dejaron `GamePlayer` acoplado a Asteroids (`AsteroidsCanvas`, `AsteroidsEvents`, stat `TRIPLE`) y `/jugar` con `game.id !== "asteroids"` → 404. Se van a integrar Tetris y Arkanoid (`references/templates/started-games/`). SPEC 06 difirió la abstracción hasta tener un segundo motor real; este spec la introduce antes de portarlos, con Asteroids como único consumidor para validar que no hay regresión.
+SPEC 05 y 06 dejaron `GamePlayer` acoplado a Asteroids (`AsteroidsCanvas`, `AsteroidsEvents`, stat `TRIPLE`) y `/jugar` con `game.id !== "asteroids"` → 404. Se van a integrar Tetris y Arkanoid (`references/started-games/`). SPEC 06 difirió la abstracción hasta tener un segundo motor real; este spec la introduce antes de portarlos, con Asteroids como único consumidor para validar que no hay regresión.
 
 Decisiones del usuario (no se reabren):
 
