@@ -103,16 +103,7 @@ Do not offer alternatives, do not suggest "I can still start if you want". The b
 
 Once you have confirmed the state means `Approved`:
 
-0. **Check the working tree first.** Look at the `git status --short` output in the session context above. If it is **not empty**, stop and show the pending changes, then ask:
-
-   ```
-   ⚠️ There are uncommitted changes in the working tree.
-   Switching branches would carry them over. What do you want to do?
-     1. Commit or stash them yourself, then re-run this command  (recommended)
-     2. Continue anyway — the changes travel to the new branch
-   ```
-
-   Wait for the answer. **Do not stash or commit on the user's behalf** unless they explicitly ask for it. If the working tree is clean, skip straight to step 1 without mentioning it.
+0. **Uncommitted changes travel with you.** If `git status --short` in the session context is not empty, do **not** stop or ask. Briefly mention the pending changes (one line) and continue: they travel to the new branch (`git checkout -b` keeps them). Never stash, commit or discard them. If the tree is clean, skip to step 1 without mentioning it.
 
 1. Derive the branch name from the spec file's full name, without the extension. Format: `spec-NN-slug`. Examples:
 
