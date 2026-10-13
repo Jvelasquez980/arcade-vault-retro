@@ -10,7 +10,7 @@ Referencia para `/integrar-juego`. Sustituye cada `<…>`; elimina las notas en 
 > **Status:** Borrador
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** <YYYY-MM-DD>
-> **Objective:** Portar `references/templates/started-games/<carpeta>/` a un motor TypeScript registrado en `ENGINES`, publicado en el catálogo y con leaderboard en `/games/<id>` y `/salon`.
+> **Objective:** Portar `references/started-games/<carpeta>/` a un motor TypeScript registrado en `ENGINES`, publicado en el catálogo y con leaderboard en `/games/<id>` y `/salon`.
 
 ---
 

@@ -1,4 +1,4 @@
-// Port literal de references/templates/started-games/04-arkanoid/levels.js.
+// Port literal de references/started-games/04-arkanoid/levels.js.
 
 export type BlockColor =
   "red" | "yellow" | "cyan" | "magenta" | "hotpink" | "green" | "gray";

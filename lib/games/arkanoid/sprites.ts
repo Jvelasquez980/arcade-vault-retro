@@ -1,4 +1,4 @@
-// Port de references/templates/started-games/04-arkanoid/assets/spritesheet.js.
+// Port de references/started-games/04-arkanoid/assets/spritesheet.js.
 // Sin globals de módulo: la imagen se carga por instancia de motor.
 
 import type { BlockColor } from "./levels";

@@ -3,7 +3,7 @@
 > **Status:** Implementado
 > **Depends on:** SPEC 01, SPEC 02
 > **Date:** 2026-10-01
-> **Objective:** Portar el juego `references/templates/started-games/02-asteroids/` a un motor TypeScript con canvas, montado en `/games/asteroids/jugar`, donde React controla HUD, pausa y guardado de puntaje y el canvas le notifica los eventos.
+> **Objective:** Portar el juego `references/started-games/02-asteroids/` a un motor TypeScript con canvas, montado en `/games/asteroids/jugar`, donde React controla HUD, pausa y guardado de puntaje y el canvas le notifica los eventos.
 
 ---
 

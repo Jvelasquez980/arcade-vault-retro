@@ -1,4 +1,4 @@
-// Port a TS de references/templates/started-games/03-tetris/game.js.
+// Port a TS de references/started-games/03-tetris/game.js.
 // Sin estado global de módulo: todo vive dentro de createTetris().
 
 import type {

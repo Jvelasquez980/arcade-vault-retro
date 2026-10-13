@@ -1,4 +1,4 @@
-// Port a TS de references/templates/started-games/02-asteroids/game.js.
+// Port a TS de references/started-games/02-asteroids/game.js.
 // Sin estado global de módulo: todo vive dentro de createAsteroids().
 
 import type { ExtraStat, GameController, GameEngineDef, GameEvents } from "../types";

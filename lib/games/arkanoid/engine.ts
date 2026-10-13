@@ -1,4 +1,4 @@
-// Port a TS de references/templates/started-games/04-arkanoid/game.js.
+// Port a TS de references/started-games/04-arkanoid/game.js.
 // Sin estado global de módulo: todo vive dentro de createArkanoid().
 
 import type { GameController, GameEngineDef, GameEvents } from "../types";
