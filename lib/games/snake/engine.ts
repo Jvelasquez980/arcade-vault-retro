@@ -326,5 +326,13 @@ export const snakeDef: GameEngineDef = {
   height: SIZE,
   initialLives: 1,
   stats: [{ key: "length", label: "LONGITUD", format: "int" }],
+  touch: {
+    dpad: {
+      up: { key: "ArrowUp", code: "ArrowUp", label: "▲" },
+      left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀" },
+      right: { key: "ArrowRight", code: "ArrowRight", label: "▶" },
+      down: { key: "ArrowDown", code: "ArrowDown", label: "▼" },
+    },
+  },
   create: createSnake,
 };
