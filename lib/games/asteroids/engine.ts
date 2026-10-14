@@ -710,5 +710,13 @@ export const asteroidsDef: GameEngineDef = {
   initialLives: 3,
   showLevel: true,
   stats: ASTEROIDS_STATS,
+  touch: {
+    dpad: {
+      up: { key: "ArrowUp", code: "ArrowUp", label: "▲" },
+      left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀" },
+      right: { key: "ArrowRight", code: "ArrowRight", label: "▶" },
+    },
+    actions: [{ key: " ", code: "Space", label: "DISPARO" }],
+  },
   create: createAsteroids,
 };

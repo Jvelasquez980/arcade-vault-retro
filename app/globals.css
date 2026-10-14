@@ -1366,10 +1366,21 @@ a { color: inherit; text-decoration: none; }
 .av-touchpad { display: none; }
 
 @media (pointer: coarse) {
-  .av-player { touch-action: manipulation; }
+  .av-player {
+    --tp-btn: clamp(48px, 14vw, 72px);
+    touch-action: manipulation;
+  }
+
+  /* canvas + gamepad caben en el viewport: reserva padding del CRT, pie y D-pad (3 filas) */
+  .crt-screen {
+    --tp-reserve: calc(3 * var(--tp-btn) + 130px);
+    max-height: calc(100vh - var(--tp-reserve));
+    max-height: calc(100dvh - var(--tp-reserve));
+    width: auto;
+    margin-inline: auto;
+  }
 
   .av-touchpad {
-    --tp-btn: clamp(48px, 14vw, 72px);
     display: flex;
     align-items: center;
     justify-content: space-between;

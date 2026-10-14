@@ -555,5 +555,14 @@ export const tetrisDef: GameEngineDef = {
   initialLives: 1,
   showLevel: true,
   stats: TETRIS_STATS,
+  touch: {
+    dpad: {
+      up: { key: "ArrowUp", code: "ArrowUp", label: "▲" },
+      left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀", repeat: true },
+      right: { key: "ArrowRight", code: "ArrowRight", label: "▶", repeat: true },
+      down: { key: "ArrowDown", code: "ArrowDown", label: "▼", repeat: true },
+    },
+    actions: [{ key: " ", code: "Space", label: "CAÍDA" }],
+  },
   create: createTetris,
 };

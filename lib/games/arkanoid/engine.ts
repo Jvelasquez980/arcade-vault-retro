@@ -494,5 +494,11 @@ export const arkanoidDef: GameEngineDef = {
   height: H,
   initialLives: 3,
   showLevel: true,
+  touch: {
+    dpad: {
+      left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀" },
+      right: { key: "ArrowRight", code: "ArrowRight", label: "▶" },
+    },
+  },
   create: createArkanoid,
 };
