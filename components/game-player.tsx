@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { GameCanvas } from "@/components/games/game-canvas";
+import { TouchPad } from "@/components/games/touch-pad";
 import { useSession } from "@/components/session-provider";
 import type { Game } from "@/lib/catalog-shared";
 import { ENGINES } from "@/lib/games/registry";
@@ -245,6 +246,8 @@ export function GamePlayer({ game }: { game: Game }) {
           <span>CARGA · 1MB</span>
         </div>
       </div>
+
+      {def?.touch && <TouchPad config={def.touch} disabled={paused || over} />}
 
       {over && (
         <div className="modal-bd">
