@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project
 
-Arcade Vault: plataforma para jugar online y competir por puntos. Sigue Spec Driven Design (`/spec` y `/spec-impl`, skills de `Klerith/fernando-skills`). Specs en `specs/NN-slug.md` (01 pantallas MVP, 02 home/games, 03 about + contacto). Diseños de referencia en `references/templates/` (JSX/CSS de prototipo); las pantallas se portan de ahí. UI y copy en español.
+Arcade Vault: plataforma para jugar online y competir por puntos. Sigue Spec Driven Design (`/spec` y `/spec-impl`, skills de `Klerith/fernando-skills`). Specs en `specs/NN-slug.md` (01 pantallas MVP, 02 home/games, 03 about + contacto, 04 Supabase, 05 asteroids, 06 leaderboard + tabla games, 07 registro de motores, 08 tetris, 09 arkanoid, 10 snake; 09 y 10 con status "Aprovado", el resto "Implementado"). Diseños de referencia en `references/templates/` (JSX/CSS de prototipo); las pantallas se portan de ahí. Código/assets originales de juegos en `references/started-games/` y `references/snake-assets/`. UI y copy en español.
 
 ## Commands
 
@@ -26,9 +26,9 @@ No test runner configured.
 - Next docs offline: `node_modules/next/dist/docs/` (01-app, 02-pages, 03-architecture, 04-community). Consult before writing Next code — see AGENTS.md.
 
 ## Architecture
-
+- If you need to check all the games that are implemented see `references/implemented-games.md`
 - Sesión mock (sin Supabase Auth): `lib/session.ts` clave `av_user` en `localStorage`; `lib/player-name.ts` recuerda el nombre del modal de puntaje en `av_player_name`. Acceso siempre client-side (`window`, try/catch). `components/session-provider.tsx` hidrata la sesión tras el primer render.
-- Catálogo y puntajes en Supabase (tablas `games` y `scores`, vista `game_stats`, RLS con lectura pública y sin políticas de escritura). `lib/catalog.ts` (servidor: `listGames`, `getGame`, une `game_stats`) re-exporta `lib/catalog-shared.ts` (tipos, `CATS`, etiquetas, `formatPlays`, `formatDate`; sin imports de servidor, usable en Client Components). `lib/leaderboard.ts` (`getTopScores`, `getBestByName`) y `lib/scores-validation.ts`. Los puntajes se insertan solo por la Server Action `submitScore` (`app/games/[id]/jugar/actions.ts`) → RPC `submit_score` (`security definer`); el cliente no escribe directo. Contenido del home no-catálogo en `lib/home-data.ts`.
+- Catálogo y puntajes en Supabase (tablas `games` y `scores`, vista `game_stats`, RLS con lectura pública y sin políticas de escritura). `lib/catalog.ts` (servidor: `listGames`, `getGame`, une `game_stats`) re-exporta `lib/catalog-shared.ts` (tipos, `CATS`, etiquetas, `formatPlays`, `formatDate`; sin imports de servidor, usable en Client Components). `lib/leaderboard.ts` (`getTopScores`, `getBestByName`) y `lib/scores-validation.ts`. Los puntajes se insertan solo por la Server Action `submitScore` (`app/games/[id]/jugar/actions.ts`) → RPC `submit_score` (`security definer`); el cliente no escribe directo. `app/salon/actions.ts` (`getMyBest`) consulta el mejor puntaje por nombre. Contenido del home no-catálogo en `lib/home-data.ts`.
 - Añadir un juego: (1) clase `cover-*` en `app/globals.css`, (2) migración con `insert` en `games` (`published = false` hasta verificarlo), (3) su motor en `lib/games/<juego>/engine.ts` exportando un `GameEngineDef`, (4) registrarlo en `ENGINES` de `lib/games/registry.ts`. `GamePlayer` y `/games/<id>/jugar` no se tocan; el id sin entrada en `ENGINES` da 404. Assets en `public/games/<id>/`. El skill `/integrar-juego` genera el spec.
 - Motores de juego en `lib/games/<juego>/engine.ts`, patrón `createX(canvas, events) → GameController` (hoy `asteroids`, `tetris`, `arkanoid` y `snake`; `tetris` dibuja su panel HUD nativo dentro del canvas, 480×600; `arkanoid` es 800×600, carga su spritesheet por instancia en `sprites.ts` y no arranca el loop hasta que carga, con niveles en `levels.ts` y audio en `public/games/arkanoid/`; `snake` es 600×600, rejilla 20×20, 1 vida sin niveles, sin portar código original, carga `fruits.png` por instancia en `sprites.ts` y no arranca el loop hasta que carga). Contrato en `lib/games/types.ts`: `GameEvents` (`onScore/onGameOver` + opcionales `onLives/onLevel/onStat(key, value)`, solo al cambiar el valor), `GameController` (`pause/resume/restart/destroy`) y `GameEngineDef` (`width/height`, `initialLives?`, `showLevel?`, `stats?` extra del HUD, `create`). `lib/games/registry.ts` (`ENGINES`, import dinámico, `hasEngine`) mapea id → def. Sin globals de módulo; React es la fuente de verdad del HUD, la pausa (botón y tecla `P`) y el modal de puntaje. `components/games/game-canvas.tsx` crea el motor en `useEffect` y lo destruye al desmontar; `GamePlayer` es genérico y fija `--game-ar` desde `width/height`. Teclado: el motor ignora `input/textarea/select`.
 - Rutas: `/`, `/games`, `/games/[id]`, `/games/[id]/jugar`, `/salon`, `/auth`, `/about`. Layout raíz (`app/layout.tsx`) monta Nav/Footer/SessionProvider y las fuentes vía `next/font`.
@@ -36,5 +36,9 @@ No test runner configured.
 - Supabase (sin auth real; convive con la sesión mock): clientes en `lib/supabase/` (`client.ts` navegador, `server.ts` servidor/Server Actions, async y por petición; `proxy.ts` helper `updateSession`). `proxy.ts` en la raíz (convención Next 16, no `middleware.ts`) solo refresca la sesión con `getClaims()`, no protege rutas. Variables en `.env.local`: `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (clave `sb_publishable_...`; nunca claves privilegiadas).
 - Estilos: tokens y clases `av-*` en `app/globals.css` (tema retro/neón: cyan/magenta/yellow) expuestos a Tailwind vía `@theme inline`.
 
-## Skills 
+## Skills y hooks
+- Skills de proyecto en `.claude/skills/`: `spec`, `spec-impl`, `integrar-juego`.
+- Hook `PostToolUse` (`Write`) en `.claude/settings.json` → `.claude/hooks/format-file.mjs`: Prettier + ESLint `--fix` al archivo escrito.
+- `hooks/use-reveal.ts` (raíz) es un hook de React (reveal on scroll), no de Claude.0.
+
 Always use the frontend design skill when you try to design a user interface. 

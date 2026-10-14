@@ -1,6 +1,6 @@
 # SPEC 10 — Juego real: SNAKE (motor TS nuevo + canvas en React)
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 06, SPEC 07
 > **Date:** 2026-10-13
 > **Objective:** Crear un motor TypeScript de Snake con los sprites de fruta de `references/snake-assets/`, registrado en `ENGINES`, publicado en el catálogo y con leaderboard en `/games/snake` y `/salon`.
