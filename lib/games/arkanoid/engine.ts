@@ -1,14 +1,21 @@
 // Port a TS de references/started-games/04-arkanoid/game.js.
 // Sin estado global de módulo: todo vive dentro de createArkanoid().
 
-import type { GameController, GameEngineDef, GameEvents } from "../types";
+import type {
+  GameController,
+  GameEngineDef,
+  GameEvents,
+  SkinId,
+} from "../types";
 import { LEVELS, type BlockColor } from "./levels";
+import { arkanoidSkins } from "./skins";
 import {
   EXPLOSION_DURATION,
   EXPLOSION_FRAMES,
   drawFrame,
   drawSprite,
   loadSpritesheet,
+  transformSheet,
 } from "./sprites";
 
 const W = 800;
@@ -47,10 +54,28 @@ type Explosion = {
 export function createArkanoid(
   canvas: HTMLCanvasElement,
   events: GameEvents,
+  skin: SkinId = "classic",
 ): GameController {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return { pause() {}, resume() {}, restart() {}, destroy() {} };
+  }
+
+  // ── Skin (por instancia) ────────────────────────────────────────────────────
+  const pal = arkanoidSkins[skin] ?? arkanoidSkins.classic;
+  ctx.imageSmoothingEnabled = !pal.hard;
+  let scanPattern: CanvasPattern | null = null;
+  if (pal.scanlines) {
+    // Patrón 1×3 (1 línea oscura cada 3 px): un solo fillRect por frame.
+    const tile = document.createElement("canvas");
+    tile.width = 1;
+    tile.height = 3;
+    const tc = tile.getContext("2d");
+    if (tc) {
+      tc.fillStyle = pal.scanlines;
+      tc.fillRect(0, 2, 1, 1);
+      scanPattern = ctx.createPattern(tile, "repeat");
+    }
   }
 
   // ── Estado ──────────────────────────────────────────────────────────────────
@@ -237,8 +262,22 @@ export function createArkanoid(
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
   function draw(c: CanvasRenderingContext2D, img: CanvasImageSource) {
-    c.fillStyle = "#000";
+    c.fillStyle = pal.bg;
     c.fillRect(0, 0, W, H);
+
+    // Marco (paredes y techo; solo visual, no cambia colisiones)
+    if (pal.frame) {
+      const fw = pal.frameWidth;
+      c.fillStyle = pal.frame;
+      if (pal.glow) {
+        c.shadowColor = pal.frame;
+        c.shadowBlur = pal.glow;
+      }
+      c.fillRect(0, 0, W, fw);
+      c.fillRect(0, 0, fw, H);
+      c.fillRect(W - fw, 0, fw, H);
+      c.shadowBlur = 0;
+    }
 
     for (const block of blocks) {
       if (block.alive)
@@ -251,6 +290,31 @@ export function createArkanoid(
           block.w,
           block.h,
         );
+    }
+
+    // Contornos por color: un path por color (≤7 trazos con glow por frame).
+    if (pal.blockEdge) {
+      const ew = pal.edgeWidth;
+      c.lineWidth = ew;
+      c.lineJoin = "miter";
+      for (const color of Object.keys(pal.blockEdge) as BlockColor[]) {
+        let any = false;
+        c.beginPath();
+        for (const b of blocks) {
+          if (!b.alive || b.color !== color) continue;
+          any = true;
+          c.rect(b.x + ew / 2, b.y + ew / 2, b.w - ew, b.h - ew);
+        }
+        if (!any) continue;
+        const edge = pal.blockEdge[color];
+        c.strokeStyle = edge;
+        if (pal.glow) {
+          c.shadowColor = edge;
+          c.shadowBlur = pal.glow;
+        }
+        c.stroke();
+      }
+      c.shadowBlur = 0;
     }
 
     for (const exp of explosions) {
@@ -269,16 +333,23 @@ export function createArkanoid(
       );
     }
 
+    if (pal.glow) {
+      c.shadowColor = pal.paddleGlow;
+      c.shadowBlur = pal.glow;
+    }
     drawSprite(c, img, "paddle", paddle.x, paddle.y, paddle.w, paddle.h);
+    if (pal.glow) c.shadowColor = pal.ballGlow;
     drawSprite(c, img, "ball", ball.x, ball.y, ball.w, ball.h);
+    c.shadowBlur = 0;
 
     // HUD nativo (solo mientras se juega, como en el original)
     if (!finished) {
-      c.fillStyle = "#fff";
+      c.fillStyle = pal.hudText;
       c.font = "bold 18px monospace";
       c.textAlign = "left";
       c.textBaseline = "top";
       c.fillText(`Score: ${score}`, 10, 10);
+      c.fillStyle = pal.hudLevel;
       c.textAlign = "center";
       c.fillText(`Nivel: ${currentLevel}`, W / 2, 10);
       const ballSize = 16;
@@ -287,6 +358,11 @@ export function createArkanoid(
         const bx = W - 10 - (lives - i) * (ballSize + ballSpacing);
         drawSprite(c, img, "ball", bx, 10, ballSize, ballSize);
       }
+    }
+
+    if (scanPattern) {
+      c.fillStyle = scanPattern;
+      c.fillRect(0, 0, W, H);
     }
   }
 
@@ -369,7 +445,7 @@ export function createArkanoid(
     "/games/arkanoid/spritesheet-breakout.png",
     (img) => {
       if (destroyed) return;
-      sheet = img;
+      sheet = transformSheet(img, pal.sheetFilter, pal.quantize);
       initGame();
       emitState();
       if (!paused) startLoop();

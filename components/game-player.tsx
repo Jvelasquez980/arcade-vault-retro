@@ -6,14 +6,22 @@ import { GameCanvas } from "@/components/games/game-canvas";
 import { useSession } from "@/components/session-provider";
 import type { Game } from "@/lib/catalog-shared";
 import { ENGINES } from "@/lib/games/registry";
-import type { GameController, GameEngineDef, GameEvents } from "@/lib/games/types";
+import {
+  SKINS,
+  type GameController,
+  type GameEngineDef,
+  type GameEvents,
+  type SkinId,
+} from "@/lib/games/types";
 import { getPlayerName, setPlayerName } from "@/lib/player-name";
+import { getSkin, hasSkins, setSkin } from "@/lib/skin";
 import { submitScore } from "@/app/games/[id]/jugar/actions";
 
 export function GamePlayer({ game }: { game: Game }) {
   const { user } = useSession();
   const [score, setScore] = useState(0);
   const [def, setDef] = useState<GameEngineDef | null>(null);
+  const [skin, setSkinState] = useState<SkinId>("classic");
   const [lives, setLives] = useState<number | null>(null);
   const [level, setLevel] = useState(1);
   const [paused, setPaused] = useState(false);
@@ -25,11 +33,13 @@ export function GamePlayer({ game }: { game: Game }) {
   const [stats, setStats] = useState<Record<string, number>>({});
   const controllerRef = useRef<GameController | null>(null);
 
-  // Carga el def del motor registrado para este juego.
+  // Carga el def del motor registrado y la skin guardada (antes de crear el motor).
   useEffect(() => {
     let cancelled = false;
     ENGINES[game.id]?.().then((d) => {
-      if (!cancelled) setDef(d);
+      if (cancelled) return;
+      setSkinState(hasSkins(game.id) ? getSkin(game.id) : "classic");
+      setDef(d);
     });
     return () => {
       cancelled = true;
@@ -93,8 +103,7 @@ export function GamePlayer({ game }: { game: Game }) {
     openGameOver();
   };
 
-  const restart = () => {
-    controllerRef.current?.restart();
+  const resetRun = () => {
     setStats({});
     setScore(0);
     setLives(null);
@@ -104,6 +113,19 @@ export function GamePlayer({ game }: { game: Game }) {
     setSaved(false);
     setSaving(false);
     setSaveError(null);
+  };
+
+  const restart = () => {
+    controllerRef.current?.restart();
+    resetRun();
+  };
+
+  // Cambiar skin recrea el motor (GameCanvas depende de skin) y reinicia la partida.
+  const changeSkin = (next: SkinId) => {
+    if (next === skin) return;
+    setSkin(game.id, next);
+    setSkinState(next);
+    resetRun();
   };
 
   const save = async () => {
@@ -171,12 +193,33 @@ export function GamePlayer({ game }: { game: Game }) {
         </div>
       </div>
 
+      {hasSkins(game.id) && (
+        <div className="av-skins" role="group" aria-label="Skin del juego">
+          <span className="av-skins-label">Skin</span>
+          {SKINS.map((s) => (
+            <button
+              key={s.id}
+              type="button"
+              className={`chip${s.id === skin ? " active" : ""}`}
+              aria-pressed={s.id === skin}
+              onClick={(e) => {
+                // Sin foco: Espacio dispara en el juego, no re-pulsa el botón.
+                e.currentTarget.blur();
+                changeSkin(s.id);
+              }}
+            >
+              {s.label.toUpperCase()}
+            </button>
+          ))}
+        </div>
+      )}
+
       <div className="crt">
         <div
           className="crt-screen"
           style={def ? ({ "--game-ar": `${def.width} / ${def.height}` } as React.CSSProperties) : undefined}
         >
-          {def && <GameCanvas def={def} events={events} onReady={onEngineReady} />}
+          {def && <GameCanvas def={def} events={events} skin={skin} onReady={onEngineReady} />}
           {paused && (
             <div className="crt-content" style={{ background: "rgba(0,0,0,0.6)", zIndex: 5 }}>
               <div>

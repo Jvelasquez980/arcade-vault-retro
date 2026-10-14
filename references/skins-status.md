@@ -4,9 +4,9 @@ Un juego cumple cuando tiene Clásico, Neón y Retro con contraste OK (texto ≥
 
 | Juego     | Clásico | Neón | Retro | Contraste mín. | Actualizado |
 | --------- | ------- | ---- | ----- | -------------- | ----------- |
-| asteroids | ❌      | ❌   | ❌    | —              | —           |
-| tetris    | ❌      | ❌   | ❌    | —              | —           |
-| arkanoid  | ❌      | ❌   | ❌    | —              | —           |
-| snake     | ❌      | ❌   | ❌    | —              | —           |
+| asteroids | ✅      | ✅   | ✅    | 5.30:1         | 2026-10-14  |
+| tetris    | ✅      | ✅   | ✅    | 4.79:1         | 2026-10-14  |
+| arkanoid  | ✅      | ✅   | ✅    | 5.03:1         | 2026-10-14  |
+| snake     | ✅      | ✅   | ✅    | 7.12:1         | 2026-10-14  |
 
 Leyenda: ✅ hecho y verificado · ⚠ hecho con contraste por revisar · ❌ pendiente.
