@@ -24,12 +24,26 @@ export type GameController = {
   destroy: () => void; // idempotente
 };
 
+// Gamepad virtual (SPEC 11): se traduce a KeyboardEvent sintéticos en window.
+export type TouchButton = {
+  key: string; // KeyboardEvent.key, p. ej. "ArrowLeft", " "
+  code: string; // KeyboardEvent.code, p. ej. "ArrowLeft", "Space"
+  label: string; // texto/glifo del botón: "◀", "DISPARO"
+  repeat?: boolean; // auto-repeat mientras se mantiene
+};
+
+export type TouchConfig = {
+  dpad: { up?: TouchButton; down?: TouchButton; left?: TouchButton; right?: TouchButton };
+  actions?: TouchButton[]; // 0–2 botones a la derecha
+};
+
 export type GameEngineDef = {
   width: number; // tamaño lógico del canvas
   height: number;
   initialLives?: number; // si falta, no se muestra HUD de vidas
   showLevel?: boolean; // por defecto false
   stats?: ExtraStat[];
+  touch?: TouchConfig; // si falta, no se muestra gamepad
   /** skin opcional (default "classic"); los motores sin skins lo ignoran. */
   create: (canvas: HTMLCanvasElement, events: GameEvents, skin?: SkinId) => GameController;
 };
