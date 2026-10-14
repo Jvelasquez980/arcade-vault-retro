@@ -38,6 +38,7 @@ No test runner configured.
 
 ## Skills y hooks
 - Skills de proyecto en `.claude/skills/`: `spec`, `spec-impl`, `integrar-juego`.
+- Subagente `game-planner` en `.claude/agents/game-planner.md`: decide qué juego encaja; memoria/TODO de sugerencias en `references/game-suggestions-todo.md`.
 - Hook `PostToolUse` (`Write`) en `.claude/settings.json` → `.claude/hooks/format-file.mjs`: Prettier + ESLint `--fix` al archivo escrito.
 - `hooks/use-reveal.ts` (raíz) es un hook de React (reveal on scroll), no de Claude.0.
 
