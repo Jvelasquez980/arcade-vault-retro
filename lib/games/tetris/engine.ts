@@ -6,7 +6,9 @@ import type {
   GameController,
   GameEngineDef,
   GameEvents,
+  SkinId,
 } from "../types";
+import { tetrisSkins, type TetrisPalette } from "./skins";
 
 const COLS = 10;
 const ROWS = 20;
@@ -18,21 +20,7 @@ const PANEL_W = 160;
 const W = PANEL_X + PANEL_W; // 480
 const H = ROWS * BLOCK; // 600
 
-const BG = "#1a1a25";
-const GRID_LINE = "#22222e";
 const MAX_DT = 50; // ms de acumulación por frame
-
-const COLORS: (string | null)[] = [
-  null,
-  "#4dd0e1", // I
-  "#ffd54f", // O
-  "#ba68c8", // T
-  "#81c784", // S
-  "#e57373", // Z
-  "#90caf9", // J
-  "#ffb74d", // L
-  "#9e9e9e", // N (tuerca)
-];
 
 const PIECES: number[][][] = [
   [],
@@ -119,6 +107,7 @@ function rotateCW(shape: number[][]) {
 
 function drawBlock(
   ctx: CanvasRenderingContext2D,
+  pal: TetrisPalette,
   x: number,
   y: number,
   colorIndex: number,
@@ -126,21 +115,54 @@ function drawBlock(
   alpha = 1,
 ) {
   if (!colorIndex) return;
+  const color = pal.pieces[colorIndex] as string;
+  const px = x * size + 1;
+  const py = y * size + 1;
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = COLORS[colorIndex] as string;
-  ctx.fillRect(x * size + 1, y * size + 1, size - 2, size - 2);
-  ctx.fillStyle = "rgba(255,255,255,0.12)";
-  ctx.fillRect(x * size + 1, y * size + 1, size - 2, 4);
+  ctx.fillStyle = color;
+  if (pal.glow) {
+    ctx.shadowColor = color;
+    ctx.shadowBlur = pal.glow;
+  }
+  ctx.fillRect(px, py, size - 2, size - 2);
+  ctx.shadowBlur = 0;
+  ctx.fillStyle = pal.highlight;
+  if (pal.hard) {
+    // Bloque NES: brillo en L en la esquina superior izquierda.
+    ctx.fillRect(px + 2, py + 2, 4, 4);
+    ctx.fillRect(px + 6, py + 2, 4, 2);
+    ctx.fillRect(px + 2, py + 6, 2, 4);
+  } else {
+    ctx.fillRect(px, py, size - 2, 4);
+  }
   ctx.globalAlpha = 1;
 }
 
 export function createTetris(
   canvas: HTMLCanvasElement,
   events: GameEvents,
+  skin: SkinId = "classic",
 ): GameController {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return { pause() {}, resume() {}, restart() {}, destroy() {} };
+  }
+
+  // ── Skin (por instancia) ────────────────────────────────────────────────────
+  const pal = tetrisSkins[skin] ?? tetrisSkins.classic;
+  ctx.imageSmoothingEnabled = !pal.hard;
+  let scanPattern: CanvasPattern | null = null;
+  if (pal.scanlines) {
+    // Patrón 1×3 (1 línea oscura cada 3 px): un solo fillRect por frame.
+    const tile = document.createElement("canvas");
+    tile.width = 1;
+    tile.height = 3;
+    const tc = tile.getContext("2d");
+    if (tc) {
+      tc.fillStyle = pal.scanlines;
+      tc.fillRect(0, 2, 1, 1);
+      scanPattern = ctx.createPattern(tile, "repeat");
+    }
   }
 
   // ── Estado ──────────────────────────────────────────────────────────────────
@@ -282,7 +304,7 @@ export function createTetris(
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
   function drawGrid(c: CanvasRenderingContext2D) {
-    c.strokeStyle = GRID_LINE;
+    c.strokeStyle = pal.grid;
     c.lineWidth = 0.5;
     for (let x = 1; x < COLS; x++) {
       c.beginPath();
@@ -299,8 +321,8 @@ export function createTetris(
   }
 
   function drawLabel(c: CanvasRenderingContext2D, text: string, y: number) {
-    c.fillStyle = "#555570";
-    c.font = "10px sans-serif";
+    c.fillStyle = pal.label;
+    c.font = `10px ${pal.font}`;
     c.letterSpacing = "2px";
     c.textBaseline = "alphabetic";
     c.fillText(text, PANEL_X, y);
@@ -308,9 +330,14 @@ export function createTetris(
   }
 
   function drawValue(c: CanvasRenderingContext2D, text: string, y: number) {
-    c.fillStyle = "#7aa2f7";
+    c.fillStyle = pal.value;
     c.font = "bold 26px monospace";
+    if (pal.glow) {
+      c.shadowColor = pal.value;
+      c.shadowBlur = pal.glow;
+    }
     c.fillText(text, PANEL_X, y);
+    c.shadowBlur = 0;
   }
 
   function drawPanel(c: CanvasRenderingContext2D) {
@@ -324,9 +351,9 @@ export function createTetris(
     drawLabel(c, "NEXT", 206);
     const boxX = PANEL_X;
     const boxY = 216;
-    c.fillStyle = BG;
+    c.fillStyle = pal.bg;
     c.fillRect(boxX, boxY, 120, 120);
-    c.strokeStyle = "#2a2a3a";
+    c.strokeStyle = pal.boxBorder;
     c.lineWidth = 1;
     c.strokeRect(boxX + 0.5, boxY + 0.5, 119, 119);
     const shape = next.shape;
@@ -336,21 +363,21 @@ export function createTetris(
     c.translate(boxX, boxY);
     for (let r = 0; r < shape.length; r++)
       for (let k = 0; k < shape[r].length; k++)
-        drawBlock(c, offX + k, offY + r, shape[r][k], BLOCK);
+        drawBlock(c, pal, offX + k, offY + r, shape[r][k], BLOCK);
     c.restore();
 
     drawLabel(c, "CONTROLS", 366);
-    c.font = "12px sans-serif";
+    c.font = `12px ${pal.font}`;
     c.textBaseline = "middle";
     CONTROLS.forEach(([key, desc], i) => {
       const y = 388 + i * 26;
       const kw = Math.ceil(c.measureText(key).width) + 12;
-      c.fillStyle = "#22223a";
+      c.fillStyle = pal.keyBg;
       c.fillRect(PANEL_X, y - 10, kw, 20);
-      c.strokeStyle = "#3a3a5a";
+      c.strokeStyle = pal.keyBorder;
       c.lineWidth = 1;
       c.strokeRect(PANEL_X + 0.5, y - 9.5, kw - 1, 19);
-      c.fillStyle = "#888";
+      c.fillStyle = pal.keyText;
       c.fillText(key, PANEL_X + 6, y);
       c.fillText(desc, PANEL_X + kw + 8, y);
     });
@@ -358,24 +385,44 @@ export function createTetris(
   }
 
   function draw(c: CanvasRenderingContext2D) {
-    c.fillStyle = BG;
+    c.fillStyle = pal.bg;
     c.fillRect(0, 0, W, H);
     drawGrid(c);
 
     for (let r = 0; r < ROWS; r++)
-      for (let k = 0; k < COLS; k++) drawBlock(c, k, r, board[r][k], BLOCK);
+      for (let k = 0; k < COLS; k++) drawBlock(c, pal, k, r, board[r][k], BLOCK);
 
     const gy = ghostY();
     for (let r = 0; r < current.shape.length; r++)
       for (let k = 0; k < current.shape[r].length; k++)
         if (current.shape[r][k])
-          drawBlock(c, current.x + k, gy + r, current.shape[r][k], BLOCK, 0.2);
+          drawBlock(
+            c,
+            pal,
+            current.x + k,
+            gy + r,
+            current.shape[r][k],
+            BLOCK,
+            pal.ghostAlpha,
+          );
 
     for (let r = 0; r < current.shape.length; r++)
       for (let k = 0; k < current.shape[r].length; k++)
-        drawBlock(c, current.x + k, current.y + r, current.shape[r][k], BLOCK);
+        drawBlock(
+          c,
+          pal,
+          current.x + k,
+          current.y + r,
+          current.shape[r][k],
+          BLOCK,
+        );
 
     drawPanel(c);
+
+    if (scanPattern) {
+      c.fillStyle = scanPattern;
+      c.fillRect(0, 0, W, H);
+    }
   }
 
   // ── Loop ────────────────────────────────────────────────────────────────────

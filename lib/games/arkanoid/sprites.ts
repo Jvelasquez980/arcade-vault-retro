@@ -42,7 +42,7 @@ export type SpriteName = "paddle" | "ball" | `block_${BlockColor}`;
  */
 export function loadSpritesheet(
   src: string,
-  onLoad: (sheet: CanvasImageSource) => void,
+  onLoad: (sheet: HTMLCanvasElement) => void,
 ): () => void {
   let cancelled = false;
   const img = new Image();
@@ -63,6 +63,65 @@ export function loadSpritesheet(
     img.onload = null;
     img.onerror = null;
   };
+}
+
+const hexToRgb = (hex: string): [number, number, number] => {
+  const n = parseInt(hex.slice(1), 16);
+  return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+};
+
+/**
+ * Copia del spritesheet retocada para una skin (se hace UNA vez por instancia):
+ * `filter` = ctx.filter al copiar; `quantize` = paleta limitada (vecino más
+ * cercano en RGB; transparentes y casi negros se respetan). Sin cambios → el original.
+ */
+export function transformSheet(
+  sheet: CanvasImageSource & { width: number; height: number },
+  filter: string | null,
+  quantize: string[] | null,
+): CanvasImageSource {
+  if (!filter && !quantize) return sheet;
+  const oc = document.createElement("canvas");
+  oc.width = sheet.width;
+  oc.height = sheet.height;
+  const c = oc.getContext("2d", { willReadFrequently: !!quantize });
+  if (!c) return sheet;
+  if (filter) c.filter = filter;
+  c.drawImage(sheet, 0, 0);
+  c.filter = "none";
+  if (quantize) {
+    const pal = quantize.map(hexToRgb);
+    const img = c.getImageData(0, 0, oc.width, oc.height);
+    const d = img.data;
+    for (let i = 0; i < d.length; i += 4) {
+      if (d[i + 3] < 128) {
+        d[i + 3] = 0; // alpha binario (bordes duros)
+        continue;
+      }
+      d[i + 3] = 255;
+      const r = d[i];
+      const g = d[i + 1];
+      const b = d[i + 2];
+      if (r < 24 && g < 24 && b < 24) {
+        d[i] = d[i + 1] = d[i + 2] = 0;
+        continue;
+      }
+      let best = pal[0];
+      let bestD = Infinity;
+      for (const p of pal) {
+        const dist = (r - p[0]) ** 2 + (g - p[1]) ** 2 + (b - p[2]) ** 2;
+        if (dist < bestD) {
+          bestD = dist;
+          best = p;
+        }
+      }
+      d[i] = best[0];
+      d[i + 1] = best[1];
+      d[i + 2] = best[2];
+    }
+    c.putImageData(img, 0, 0);
+  }
+  return oc;
 }
 
 export function drawFrame(

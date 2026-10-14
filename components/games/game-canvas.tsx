@@ -5,20 +5,22 @@ import type {
   GameController,
   GameEngineDef,
   GameEvents,
+  SkinId,
 } from "@/lib/games/types";
 
 type Props = {
   def: GameEngineDef;
   events: GameEvents;
+  skin: SkinId;
   onReady: (controller: GameController | null) => void;
 };
 
-export function GameCanvas({ def, events, onReady }: Props) {
+export function GameCanvas({ def, events, skin, onReady }: Props) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const eventsRef = useRef(events);
   const onReadyRef = useRef(onReady);
 
-  // Los callbacks cambian en cada render; el motor se crea una sola vez y lee el último.
+  // Los callbacks cambian en cada render; el motor se crea una vez por def/skin y lee el último.
   useEffect(() => {
     eventsRef.current = events;
     onReadyRef.current = onReady;
@@ -33,14 +35,14 @@ export function GameCanvas({ def, events, onReady }: Props) {
       onLives: (v) => eventsRef.current.onLives?.(v),
       onLevel: (v) => eventsRef.current.onLevel?.(v),
       onStat: (k, v) => eventsRef.current.onStat?.(k, v),
-    });
+    }, skin);
     const notify = onReadyRef.current;
     notify(controller);
     return () => {
       controller.destroy();
       notify(null);
     };
-  }, [def]);
+  }, [def, skin]);
 
   return (
     <canvas

@@ -1,7 +1,13 @@
 // Motor de Snake escrito desde cero (SPEC 10). Reglas clásicas: muro mortal,
 // 1 vida, sin niveles. Sin globals de módulo: todo el estado vive en la instancia.
 
-import type { GameController, GameEngineDef, GameEvents } from "../types";
+import type {
+  GameController,
+  GameEngineDef,
+  GameEvents,
+  SkinId,
+} from "../types";
+import { snakeSkins } from "./skins";
 import { drawFruit, FRUIT_NAMES, FRUITS, loadFruits } from "./sprites";
 
 const SIZE = 600;
@@ -35,10 +41,28 @@ const ARROWS = ["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight"];
 export function createSnake(
   canvas: HTMLCanvasElement,
   events: GameEvents,
+  skin: SkinId = "classic",
 ): GameController {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return { pause() {}, resume() {}, restart() {}, destroy() {} };
+  }
+
+  // ── Skin (por instancia) ────────────────────────────────────────────────────
+  const pal = snakeSkins[skin] ?? snakeSkins.classic;
+  ctx.imageSmoothingEnabled = !pal.hard;
+  let scanPattern: CanvasPattern | null = null;
+  if (pal.scanlines) {
+    // Patrón 1×3 (1 línea oscura cada 3 px): un solo fillRect por frame.
+    const tile = document.createElement("canvas");
+    tile.width = 1;
+    tile.height = 3;
+    const tc = tile.getContext("2d");
+    if (tc) {
+      tc.fillStyle = pal.scanlines;
+      tc.fillRect(0, 2, 1, 1);
+      scanPattern = ctx.createPattern(tile, "repeat");
+    }
   }
 
   // ── Estado ──────────────────────────────────────────────────────────────────
@@ -145,10 +169,10 @@ export function createSnake(
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
   function draw(c: CanvasRenderingContext2D) {
-    c.fillStyle = "#000";
+    c.fillStyle = pal.bg;
     c.fillRect(0, 0, SIZE, SIZE);
 
-    c.strokeStyle = "rgba(255,255,255,0.05)";
+    c.strokeStyle = pal.grid;
     c.lineWidth = 1;
     c.beginPath();
     for (let i = 1; i < GRID; i++) {
@@ -163,9 +187,27 @@ export function createSnake(
       drawFruit(c, img, FRUITS[fruit.sprite], fruit.x, fruit.y, CELL);
     }
 
-    for (let i = body.length - 1; i >= 0; i--) {
-      c.fillStyle = i === 0 ? "#39ff14" : "#1fae0c";
-      c.fillRect(body[i].x * CELL + 1, body[i].y * CELL + 1, CELL - 2, CELL - 2);
+    // Cuerpo en un solo path (un fill, un glow); la cabeza encima.
+    if (pal.glow) {
+      c.shadowColor = pal.body;
+      c.shadowBlur = pal.glow;
+    }
+    c.fillStyle = pal.body;
+    c.beginPath();
+    for (let i = body.length - 1; i >= 1; i--) {
+      c.rect(body[i].x * CELL + 1, body[i].y * CELL + 1, CELL - 2, CELL - 2);
+    }
+    c.fill();
+    if (body.length) {
+      if (pal.glow) c.shadowColor = pal.head;
+      c.fillStyle = pal.head;
+      c.fillRect(body[0].x * CELL + 1, body[0].y * CELL + 1, CELL - 2, CELL - 2);
+    }
+    c.shadowBlur = 0;
+
+    if (scanPattern) {
+      c.fillStyle = scanPattern;
+      c.fillRect(0, 0, SIZE, SIZE);
     }
   }
 

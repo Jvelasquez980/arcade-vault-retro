@@ -30,5 +30,15 @@ export type GameEngineDef = {
   initialLives?: number; // si falta, no se muestra HUD de vidas
   showLevel?: boolean; // por defecto false
   stats?: ExtraStat[];
-  create: (canvas: HTMLCanvasElement, events: GameEvents) => GameController;
+  /** skin opcional (default "classic"); los motores sin skins lo ignoran. */
+  create: (canvas: HTMLCanvasElement, events: GameEvents, skin?: SkinId) => GameController;
 };
+
+// Skins visuales por juego. Cambiar skin recrea el motor (reinicia la partida).
+export type SkinId = "classic" | "neon" | "retro";
+
+export const SKINS: { id: SkinId; label: string }[] = [
+  { id: "classic", label: "Clásico" },
+  { id: "neon", label: "Neón" },
+  { id: "retro", label: "Retro" },
+];
