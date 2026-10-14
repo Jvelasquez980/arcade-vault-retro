@@ -1,6 +1,6 @@
 # SPEC 11 — Controles táctiles para jugar en móvil
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 05, SPEC 07, SPEC 08, SPEC 09, SPEC 10
 > **Date:** 2026-10-14
 > **Objective:** Añadir un gamepad virtual genérico, visible solo con puntero táctil y escalado al ancho de pantalla, que traduce toques a teclas sintéticas para jugar los 4 juegos en móvil vertical.
