@@ -78,6 +78,33 @@ export function createArkanoid(
     }
   }
 
+  // ── Fondo estático offscreen (una vez por instancia; SPEC 13) ───────────────
+  const bg = document.createElement("canvas");
+  bg.width = W;
+  bg.height = H;
+  const bgCtx = bg.getContext("2d");
+
+  function drawBackground(c: CanvasRenderingContext2D) {
+    c.fillStyle = pal.bg;
+    c.fillRect(0, 0, W, H);
+
+    // Marco (paredes y techo; solo visual, no cambia colisiones)
+    if (pal.frame) {
+      const fw = pal.frameWidth;
+      c.fillStyle = pal.frame;
+      if (pal.glow) {
+        c.shadowColor = pal.frame;
+        c.shadowBlur = pal.glow;
+      }
+      c.fillRect(0, 0, W, fw);
+      c.fillRect(0, 0, fw, H);
+      c.fillRect(W - fw, 0, fw, H);
+      c.shadowBlur = 0;
+    }
+  }
+
+  if (bgCtx) drawBackground(bgCtx);
+
   // ── Estado ──────────────────────────────────────────────────────────────────
   const paddle = { x: 0, y: 560, w: 81, h: 14 };
   const ball = { x: 0, y: 0, w: 16, h: 16, vx: BASE_BALL_VX, vy: BASE_BALL_VY };
@@ -262,22 +289,8 @@ export function createArkanoid(
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
   function draw(c: CanvasRenderingContext2D, img: CanvasImageSource) {
-    c.fillStyle = pal.bg;
-    c.fillRect(0, 0, W, H);
-
-    // Marco (paredes y techo; solo visual, no cambia colisiones)
-    if (pal.frame) {
-      const fw = pal.frameWidth;
-      c.fillStyle = pal.frame;
-      if (pal.glow) {
-        c.shadowColor = pal.frame;
-        c.shadowBlur = pal.glow;
-      }
-      c.fillRect(0, 0, W, fw);
-      c.fillRect(0, 0, fw, H);
-      c.fillRect(W - fw, 0, fw, H);
-      c.shadowBlur = 0;
-    }
+    if (bgCtx) c.drawImage(bg, 0, 0);
+    else drawBackground(c);
 
     for (const block of blocks) {
       if (block.alive)

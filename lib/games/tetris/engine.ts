@@ -332,6 +332,7 @@ export function createTetris(
   function drawValue(c: CanvasRenderingContext2D, text: string, y: number) {
     c.fillStyle = pal.value;
     c.font = "bold 26px monospace";
+    c.textBaseline = "alphabetic";
     if (pal.glow) {
       c.shadowColor = pal.value;
       c.shadowBlur = pal.glow;
@@ -340,31 +341,25 @@ export function createTetris(
     c.shadowBlur = 0;
   }
 
-  function drawPanel(c: CanvasRenderingContext2D) {
-    drawLabel(c, "SCORE", 14);
-    drawValue(c, score.toLocaleString(), 44);
-    drawLabel(c, "LINES", 78);
-    drawValue(c, String(lines), 108);
-    drawLabel(c, "LEVEL", 142);
-    drawValue(c, String(level), 172);
+  const BOX_X = PANEL_X;
+  const BOX_Y = 216;
 
-    drawLabel(c, "NEXT", 206);
-    const boxX = PANEL_X;
-    const boxY = 216;
+  // ── Fondo estático (offscreen, una vez por instancia) ───────────────────────
+  /** Fondo, rejilla, etiquetas del panel, caja NEXT vacía y bloque CONTROLS. */
+  function paintBackground(c: CanvasRenderingContext2D) {
     c.fillStyle = pal.bg;
-    c.fillRect(boxX, boxY, 120, 120);
+    c.fillRect(0, 0, W, H);
+    drawGrid(c);
+
+    drawLabel(c, "SCORE", 14);
+    drawLabel(c, "LINES", 78);
+    drawLabel(c, "LEVEL", 142);
+    drawLabel(c, "NEXT", 206);
+    c.fillStyle = pal.bg;
+    c.fillRect(BOX_X, BOX_Y, 120, 120);
     c.strokeStyle = pal.boxBorder;
     c.lineWidth = 1;
-    c.strokeRect(boxX + 0.5, boxY + 0.5, 119, 119);
-    const shape = next.shape;
-    const offX = Math.floor((4 - shape[0].length) / 2);
-    const offY = Math.floor((4 - shape.length) / 2);
-    c.save();
-    c.translate(boxX, boxY);
-    for (let r = 0; r < shape.length; r++)
-      for (let k = 0; k < shape[r].length; k++)
-        drawBlock(c, pal, offX + k, offY + r, shape[r][k], BLOCK);
-    c.restore();
+    c.strokeRect(BOX_X + 0.5, BOX_Y + 0.5, 119, 119);
 
     drawLabel(c, "CONTROLS", 366);
     c.font = `12px ${pal.font}`;
@@ -384,13 +379,41 @@ export function createTetris(
     c.textBaseline = "alphabetic";
   }
 
+  const bg = document.createElement("canvas");
+  bg.width = W;
+  bg.height = H;
+  const bgCtx = bg.getContext("2d");
+  function renderBackground() {
+    if (!bgCtx) return;
+    bgCtx.imageSmoothingEnabled = !pal.hard;
+    paintBackground(bgCtx);
+  }
+  renderBackground();
+
+  /** Parte dinámica del panel: valores y pieza NEXT. */
+  function drawPanel(c: CanvasRenderingContext2D) {
+    drawValue(c, score.toLocaleString(), 44);
+    drawValue(c, String(lines), 108);
+    drawValue(c, String(level), 172);
+
+    const shape = next.shape;
+    const offX = Math.floor((4 - shape[0].length) / 2);
+    const offY = Math.floor((4 - shape.length) / 2);
+    c.save();
+    c.translate(BOX_X, BOX_Y);
+    for (let r = 0; r < shape.length; r++)
+      for (let k = 0; k < shape[r].length; k++)
+        drawBlock(c, pal, offX + k, offY + r, shape[r][k], BLOCK);
+    c.restore();
+  }
+
   function draw(c: CanvasRenderingContext2D) {
-    c.fillStyle = pal.bg;
-    c.fillRect(0, 0, W, H);
-    drawGrid(c);
+    if (bgCtx) c.drawImage(bg, 0, 0);
+    else paintBackground(c);
 
     for (let r = 0; r < ROWS; r++)
-      for (let k = 0; k < COLS; k++) drawBlock(c, pal, k, r, board[r][k], BLOCK);
+      for (let k = 0; k < COLS; k++)
+        drawBlock(c, pal, k, r, board[r][k], BLOCK);
 
     const gy = ghostY();
     for (let r = 0; r < current.shape.length; r++)
@@ -559,7 +582,12 @@ export const tetrisDef: GameEngineDef = {
     dpad: {
       up: { key: "ArrowUp", code: "ArrowUp", label: "▲" },
       left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀", repeat: true },
-      right: { key: "ArrowRight", code: "ArrowRight", label: "▶", repeat: true },
+      right: {
+        key: "ArrowRight",
+        code: "ArrowRight",
+        label: "▶",
+        repeat: true,
+      },
       down: { key: "ArrowDown", code: "ArrowDown", label: "▼", repeat: true },
     },
     actions: [{ key: " ", code: "Space", label: "CAÍDA" }],

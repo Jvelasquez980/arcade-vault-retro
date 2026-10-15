@@ -1,6 +1,6 @@
 # SPEC 13 — Performance de Frogger
 
-> **Status:** Aprovado
+> **Status:** Implementado
 > **Depends on:** SPEC 07, SPEC 11
 > **Date:** 2026-10-15
 > **Objective:** Eliminar los tirones de Frogger en móvil y escritorio cacheando su fondo estático, deteniendo el loop en pausa y aligerando las capas CSS que se componen sobre el canvas en `/games/[id]/jugar`, sin cambio visual perceptible.
