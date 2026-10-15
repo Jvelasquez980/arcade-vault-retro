@@ -30,7 +30,7 @@ export async function updateSession(request: NextRequest) {
 
   // No ejecutar código entre createServerClient y getClaims(): refresca la
   // sesión y valida el JWT. Quitarlo puede cerrar sesiones aleatoriamente.
-  await supabase.auth.getClaims();
+  const { data } = await supabase.auth.getClaims();
 
-  return supabaseResponse;
+  return { response: supabaseResponse, claims: data?.claims ?? null };
 }
