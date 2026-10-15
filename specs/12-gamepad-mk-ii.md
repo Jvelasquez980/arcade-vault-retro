@@ -1,6 +1,6 @@
 # SPEC 12 — Gamepad MK-II en todos los juegos
 
-> **Status:** Aproved
+> **Status:** Implementado
 > **Depends on:** SPEC 11
 > **Date:** 2026-10-14
 > **Objective:** Rediseñar el gamepad táctil de SPEC 11 con el diseño MK-II (`references/gamepad-assets/`) —D-pad en cruz con hub y botones redondos A/B— coloreado según la skin activa, en los 4 juegos.
