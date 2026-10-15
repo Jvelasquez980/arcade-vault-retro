@@ -290,6 +290,63 @@ export function createFrogger(
     if (C.glow) c.shadowBlur = 0;
   };
 
+  // ── Fondo estático (offscreen, una vez por instancia) ───────────────────────
+  /** Zonas, líneas de carretera y bocas vacías (relleno + borde con glow). */
+  function paintBackground(c: CanvasRenderingContext2D) {
+    c.fillStyle = C.wall;
+    c.fillRect(0, ROW_GOALS * CELL, CANVAS_W, CELL);
+    c.fillStyle = C.river;
+    c.fillRect(
+      0,
+      ROW_RIVER_TOP * CELL,
+      CANVAS_W,
+      (ROW_RIVER_BOT - ROW_RIVER_TOP + 1) * CELL,
+    );
+    c.fillStyle = C.safe;
+    c.fillRect(0, ROW_SAFE_MID * CELL, CANVAS_W, CELL);
+    c.fillRect(0, ROW_START * CELL, CANVAS_W, CELL);
+    c.fillStyle = C.road;
+    c.fillRect(
+      0,
+      ROW_ROAD_TOP * CELL,
+      CANVAS_W,
+      (ROW_ROAD_BOT - ROW_ROAD_TOP + 1) * CELL,
+    );
+    c.strokeStyle = C.roadLine;
+    c.lineWidth = 2;
+    c.setLineDash([16, 16]);
+    c.beginPath();
+    for (let r = ROW_ROAD_TOP + 1; r <= ROW_ROAD_BOT; r++) {
+      c.moveTo(0, r * CELL);
+      c.lineTo(CANVAS_W, r * CELL);
+    }
+    c.stroke();
+    c.setLineDash([]);
+
+    // Bocas destino (en la mitad inferior de la fila 0; arriba va el HUD)
+    for (let i = 0; i < MOUTH_COUNT; i++) {
+      const x = mouthStartCol(i) * CELL;
+      c.fillStyle = C.mouth;
+      c.fillRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
+      glow(c, C.mouthEdge);
+      c.strokeStyle = C.mouthEdge;
+      c.lineWidth = 2;
+      c.strokeRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
+      noGlow(c);
+    }
+  }
+
+  const bg = document.createElement("canvas");
+  bg.width = CANVAS_W;
+  bg.height = CANVAS_H;
+  const bgCtx = bg.getContext("2d");
+  function renderBackground() {
+    if (!bgCtx) return;
+    bgCtx.imageSmoothingEnabled = !C.hard;
+    paintBackground(bgCtx);
+  }
+  renderBackground();
+
   // ── Estado ──────────────────────────────────────────────────────────────────
   let lanes: Lane[] = [];
   let frog: Frog = newFrog();
@@ -644,48 +701,12 @@ export function createFrogger(
   }
 
   function draw(c: CanvasRenderingContext2D) {
-    // Zonas
-    c.fillStyle = C.wall;
-    c.fillRect(0, ROW_GOALS * CELL, CANVAS_W, CELL);
-    c.fillStyle = C.river;
-    c.fillRect(
-      0,
-      ROW_RIVER_TOP * CELL,
-      CANVAS_W,
-      (ROW_RIVER_BOT - ROW_RIVER_TOP + 1) * CELL,
-    );
-    c.fillStyle = C.safe;
-    c.fillRect(0, ROW_SAFE_MID * CELL, CANVAS_W, CELL);
-    c.fillRect(0, ROW_START * CELL, CANVAS_W, CELL);
-    c.fillStyle = C.road;
-    c.fillRect(
-      0,
-      ROW_ROAD_TOP * CELL,
-      CANVAS_W,
-      (ROW_ROAD_BOT - ROW_ROAD_TOP + 1) * CELL,
-    );
-    c.strokeStyle = C.roadLine;
-    c.lineWidth = 2;
-    c.setLineDash([16, 16]);
-    c.beginPath();
-    for (let r = ROW_ROAD_TOP + 1; r <= ROW_ROAD_BOT; r++) {
-      c.moveTo(0, r * CELL);
-      c.lineTo(CANVAS_W, r * CELL);
-    }
-    c.stroke();
-    c.setLineDash([]);
+    if (bgCtx) c.drawImage(bg, 0, 0);
+    else paintBackground(c);
 
-    // Bocas destino (en la mitad inferior de la fila 0; arriba va el HUD)
+    // Ranas en bocas ocupadas
     for (let i = 0; i < MOUTH_COUNT; i++) {
-      const x = mouthStartCol(i) * CELL;
-      c.fillStyle = C.mouth;
-      c.fillRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
-      glow(c, C.mouthEdge);
-      c.strokeStyle = C.mouthEdge;
-      c.lineWidth = 2;
-      c.strokeRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
-      noGlow(c);
-      if (goals[i]) drawFrog(c, x + CELL / 2, -2, false);
+      if (goals[i]) drawFrog(c, mouthStartCol(i) * CELL + CELL / 2, -2, false);
     }
 
     // Entidades
@@ -736,7 +757,7 @@ export function createFrogger(
     lastTime = ts;
     if (!paused && !finished) update(dt);
     draw(ctx!);
-    if (finished) return;
+    if (paused || finished) return;
     rafId = requestAnimationFrame(loop);
   }
 
