@@ -1362,8 +1362,8 @@ a { color: inherit; text-decoration: none; }
 .faq-q { font-size: 10px; letter-spacing: 0.12em; color: var(--ink); margin-bottom: 8px; }
 .faq-a { font-family: var(--mono); font-size: 13px; color: var(--ink-dim); line-height: 1.6; }
 
-/* ===== gamepad táctil (SPEC 11) ===== */
-.av-touchpad { display: none; }
+/* ===== gamepad táctil MK-II (SPEC 11 + SPEC 12) ===== */
+.av-gp { display: none; }
 
 @media (pointer: coarse) {
   .av-player {
@@ -1380,80 +1380,257 @@ a { color: inherit; text-decoration: none; }
     margin-inline: auto;
   }
 
-  .av-touchpad {
+  .av-gp {
+    /* paleta (classic por defecto; las skins la sobreescriben en [data-skin]) */
+    --gp-dp: var(--cyan);
+    --gp-a: var(--magenta);
+    --gp-b: var(--cyan);
+    --gp-glow: 1;
+    --gp-radius: 22px;
+    --gp-key-radius: 10px;
+    --gp-a-mid: color-mix(in srgb, var(--gp-a) 70%, transparent);
+    --gp-a-deep: color-mix(in srgb, var(--gp-a) 30%, #000);
+    --gp-a-glow: color-mix(in srgb, var(--gp-a) calc(40% * var(--gp-glow)), transparent);
+    --gp-b-mid: color-mix(in srgb, var(--gp-b) 70%, transparent);
+    --gp-b-deep: color-mix(in srgb, var(--gp-b) 20%, #000);
+    --gp-b-glow: color-mix(in srgb, var(--gp-b) calc(40% * var(--gp-glow)), transparent);
+    --gp-dp-glow: color-mix(in srgb, var(--gp-dp) calc(50% * var(--gp-glow)), transparent);
+
+    position: relative;
+    display: block;
+    width: 100%;
+    margin-top: 14px;
+    padding: 10px 12px;
+    background: linear-gradient(180deg, #1c1c28 0%, #0c0c14 100%);
+    border: 1px solid var(--line);
+    border-radius: var(--gp-radius);
+    box-shadow:
+      0 30px 80px -30px color-mix(in srgb, var(--gp-dp) calc(40% * var(--gp-glow)), transparent),
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -2px 0 rgba(0, 0, 0, 0.6);
+    touch-action: none;
+    user-select: none;
+    -webkit-user-select: none;
+    -webkit-touch-callout: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .av-gp::before {
+    content: "";
+    position: absolute;
+    inset: 4px;
+    border: 1px solid color-mix(in srgb, var(--gp-dp) 14%, transparent);
+    border-radius: calc(var(--gp-radius) - 4px);
+    pointer-events: none;
+  }
+  .av-gp::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 1px);
+    background-size: 8px 8px;
+    border-radius: inherit;
+    opacity: 0.6;
+    pointer-events: none;
+  }
+
+  .av-gp-body {
+    position: relative;
+    z-index: 1;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: 16px;
-    margin-top: 14px;
-    padding: 0 4px;
-    touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
+    gap: 14px;
+    padding: 8px 6px;
   }
 
-  .av-touchpad-dpad {
+  /* D-pad: cruz 3x3 con hub al centro */
+  .av-gp-dpad {
     display: grid;
     grid-template-columns: repeat(3, var(--tp-btn));
-    grid-template-rows: repeat(3, auto);
-    grid-template-areas: ". up ." "left . right" ". down .";
-    gap: 4px;
+    grid-template-rows: repeat(3, var(--tp-btn));
+    grid-template-areas: ". up ." "left hub right" ". down .";
+    gap: 3px;
   }
-  .av-touchpad-dpad .up { grid-area: up; }
-  .av-touchpad-dpad .left { grid-area: left; }
-  .av-touchpad-dpad .right { grid-area: right; }
-  .av-touchpad-dpad .down { grid-area: down; }
-
-  .av-touchpad-actions {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    gap: 10px;
-  }
-  .av-touchpad-gap { display: none; }
-
-  .av-touchpad-btn {
+  .av-gp-dp {
     width: var(--tp-btn);
     height: var(--tp-btn);
-    display: inline-flex;
+    display: flex;
     align-items: center;
     justify-content: center;
     padding: 0;
-    font-family: var(--pixel);
-    font-size: clamp(14px, 4.4vw, 20px);
-    color: var(--cyan);
-    background: rgba(0, 245, 255, 0.06);
-    border: 1px solid var(--cyan);
-    box-shadow: inset 0 0 8px rgba(0, 245, 255, 0.18);
-    clip-path: polygon(8px 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%, 0 8px);
+    color: var(--ink-dim);
+    background: linear-gradient(180deg, #1a1a25, #0a0a12);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--gp-key-radius);
+    box-shadow:
+      0 4px 0 #050507,
+      inset 0 1px 0 rgba(255, 255, 255, 0.06),
+      inset 0 -2px 4px rgba(0, 0, 0, 0.6);
     touch-action: none;
-    user-select: none;
-    -webkit-user-select: none;
-    -webkit-touch-callout: none;
-    -webkit-tap-highlight-color: transparent;
-    transition: background 60ms, box-shadow 60ms, color 60ms;
+    transition: transform 80ms, box-shadow 140ms, color 140ms, border-color 140ms, background 140ms;
   }
-  .av-touchpad-btn.action {
-    width: auto;
-    min-width: calc(var(--tp-btn) * 1.8);
-    padding: 0 14px;
-    font-size: clamp(8px, 2.4vw, 10px);
+  .av-gp-dp-up { grid-area: up; }
+  .av-gp-dp-left { grid-area: left; }
+  .av-gp-dp-right { grid-area: right; }
+  .av-gp-dp-down { grid-area: down; }
+  .av-gp-arrow { width: 44%; height: 44%; transition: filter 140ms; }
+  .av-gp-dp.on {
+    transform: translateY(3px);
+    color: var(--gp-dp);
+    background: linear-gradient(180deg, #08161e, #030a0e);
+    border-color: var(--gp-dp);
+    box-shadow:
+      0 1px 0 #050507,
+      inset 0 0 16px var(--gp-dp-glow),
+      0 0 16px var(--gp-dp-glow);
+  }
+  .av-gp-dp.on .av-gp-arrow {
+    filter: drop-shadow(0 0 6px var(--gp-dp)) drop-shadow(0 0 12px var(--gp-dp));
+  }
+
+  .av-gp-hub {
+    grid-area: hub;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: radial-gradient(circle at 50% 50%, #181822 0%, #08080d 80%);
+    border: 1px solid color-mix(in srgb, var(--gp-dp) 15%, transparent);
+    border-radius: 6px;
+    box-shadow: inset 0 0 12px rgba(0, 0, 0, 0.8), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  }
+  .av-gp-gem {
+    width: 24%;
+    height: 24%;
+    background: var(--gp-dp);
+    box-shadow: 0 0 10px var(--gp-dp), inset 0 0 4px rgba(0, 0, 0, 0.5);
+    clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
+    animation: av-gp-pulse 2s ease-in-out infinite;
+  }
+  @keyframes av-gp-pulse { 50% { opacity: 0.35; transform: scale(0.85); } }
+  @media (prefers-reduced-motion: reduce) {
+    .av-gp-gem { animation: none; }
+  }
+
+  /* A/B */
+  .av-gp-actions {
+    display: flex;
+    align-items: flex-start;
+    gap: clamp(14px, 4vw, 22px);
+  }
+  .av-gp-ab-wrap {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+  }
+  .av-gp-ab {
+    --ab-mid: var(--gp-a-mid);
+    --ab-deep: var(--gp-a-deep);
+    --ab-glow: var(--gp-a-glow);
+    position: relative;
+    width: calc(var(--tp-btn) * var(--gp-ab-scale, 1.35));
+    height: calc(var(--tp-btn) * var(--gp-ab-scale, 1.35));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: var(--gp-a);
+    border: 2px solid currentColor;
+    border-radius: 50%;
+    background:
+      radial-gradient(circle at 32% 26%, rgba(255, 255, 255, 0.25), transparent 50%),
+      radial-gradient(circle at 50% 55%, var(--ab-mid), var(--ab-deep) 75%);
+    box-shadow:
+      0 6px 0 #050507,
+      0 0 22px var(--ab-glow),
+      inset 0 1px 0 rgba(255, 255, 255, 0.18),
+      inset 0 -4px 8px rgba(0, 0, 0, 0.4);
+    touch-action: none;
+    transition: transform 80ms, box-shadow 140ms;
+  }
+  .av-gp-ab.b {
+    --ab-mid: var(--gp-b-mid);
+    --ab-deep: var(--gp-b-deep);
+    --ab-glow: var(--gp-b-glow);
+    color: var(--gp-b);
+  }
+  .av-gp-letter {
+    position: relative;
+    z-index: 2;
+    font-family: var(--pixel);
+    font-size: clamp(16px, 5vw, 22px);
+    letter-spacing: 0.02em;
+    color: #fff;
+    text-shadow: 0 0 8px currentColor, 0 0 18px currentColor, 0 1px 0 rgba(0, 0, 0, 0.6);
+  }
+  .av-gp-ring {
+    position: absolute;
+    inset: -8px;
+    border: 1px dashed currentColor;
+    border-radius: 50%;
+    opacity: 0;
+    transition: opacity 140ms, transform 200ms;
+  }
+  .av-gp-ab.on {
+    transform: translateY(4px) scale(0.97);
+    box-shadow: 0 1px 0 #050507, 0 0 36px var(--ab-glow), inset 0 0 18px rgba(0, 0, 0, 0.5);
+  }
+  .av-gp-ab.on .av-gp-ring { opacity: 1; transform: scale(1.08); }
+  .av-gp-label {
+    min-height: 1em;
+    font-family: var(--mono);
+    font-size: 9px;
     letter-spacing: 0.14em;
-    color: var(--magenta);
-    border-color: var(--magenta);
-    background: rgba(255, 0, 110, 0.07);
-    box-shadow: inset 0 0 8px rgba(255, 0, 110, 0.2);
+    color: var(--ink-dim);
+    text-transform: uppercase;
   }
-  .av-touchpad-btn.pressed {
-    color: var(--bg);
-    background: var(--cyan);
-    box-shadow: 0 0 16px rgba(0, 245, 255, 0.7), inset 0 0 8px rgba(255, 255, 255, 0.35);
+
+  /* paletas por skin (SPEC 12): solo CSS, sin JS */
+  .av-gp[data-skin="classic"] {
+    --gp-dp: #00f5ff;
+    --gp-a: #ff006e;
+    --gp-b: #00f5ff;
+    --gp-glow: 1;
   }
-  .av-touchpad-btn.action.pressed {
-    background: var(--magenta);
-    box-shadow: 0 0 16px rgba(255, 0, 110, 0.75), inset 0 0 8px rgba(255, 255, 255, 0.3);
+  .av-gp[data-skin="neon"] {
+    --gp-dp: #00f5ff;
+    --gp-a: #f5ff00;
+    --gp-b: #00ff88;
+    --gp-glow: 1.6;
   }
-  .av-touchpad-btn:disabled { opacity: 0.35; }
+  .av-gp[data-skin="neon"] .av-gp-ab { box-shadow: 0 6px 0 #050507, 0 0 34px var(--ab-glow), inset 0 1px 0 rgba(255, 255, 255, 0.18), inset 0 -4px 8px rgba(0, 0, 0, 0.4); }
+  .av-gp[data-skin="retro"] {
+    --gp-dp: #33ff33;
+    --gp-a: #ffb000;
+    --gp-b: #33ff33;
+    --gp-glow: 0;
+    --gp-radius: 4px;
+    --gp-key-radius: 2px;
+  }
+  .av-gp[data-skin="retro"] .av-gp-ab { border-radius: 4px; }
+  .av-gp[data-skin="retro"] .av-gp-ring { border-radius: 4px; }
+  .av-gp[data-skin="retro"] .av-gp-hub { border-radius: 2px; }
+  .av-gp[data-skin="retro"] .av-gp-gem { animation: none; box-shadow: none; }
+  .av-gp[data-skin="retro"] .av-gp-letter { text-shadow: 0 1px 0 rgba(0, 0, 0, 0.6); }
+  .av-gp[data-skin="retro"] .av-gp-dp.on .av-gp-arrow { filter: none; }
+  .av-gp[data-skin="retro"] .av-gp-dp.on,
+  .av-gp[data-skin="retro"] .av-gp-ab.on { box-shadow: 0 1px 0 #050507, inset 0 0 8px rgba(0, 0, 0, 0.5); }
+
+  /* sin TouchButton: atenuado, sin glow */
+  .av-gp .av-gp-dp:disabled,
+  .av-gp .av-gp-ab:disabled {
+    opacity: 0.3;
+    box-shadow: 0 4px 0 #050507;
+  }
+
+  @media (max-width: 620px) {
+    .av-gp { padding: 8px 8px; border-radius: 16px; }
+    .av-gp-body { gap: 10px; padding: 6px 2px; }
+  }
+  /* 340 px: A/B a 1.2× para que no desborden la carcasa */
+  @media (max-width: 380px) {
+    .av-gp { --gp-ab-scale: 1.2; padding: 8px 6px; }
+    .av-gp-body { gap: 6px; }
+    .av-gp-actions { gap: 8px; }
+  }
 }
