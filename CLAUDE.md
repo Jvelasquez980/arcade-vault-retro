@@ -46,6 +46,7 @@ No test runner configured.
 - Subagente `skin-designer` en `.claude/agents/skin-designer.md`: recibe un juego e implementa sus 3 skins (classic/neon/retro) con contraste sobre fondo oscuro; estado por juego en `references/skins-status.md`.
 - Subagente `mobile-porter` en `.claude/agents/mobile-porter.md`: recibe un juego y corrige solo código para web/móvil según SPEC 11 (sin Playwright); estado por juego en `references/mobile-status.md`.
 - Subagente `perf-optimizer` en `.claude/agents/perf-optimizer.md`: recibe un juego y le aplica las técnicas de SPEC 13 (fondo offscreen, rAF detenido en pausa, CSS ligero en `/jugar`); estado por juego en `references/performance-status.md`.
+- Subagente `security-auditor` en `.claude/agents/security-auditor.md`: auditoría de solo lectura de BD (Supabase por MCP: advisors, RLS, políticas, grants, funciones) y app (headers, proxy, Server Actions, secretos, dependencias) contra SPEC 14/15; reporta y mantiene `references/security/security-status.md`. No edita código ni aplica migraciones.
 - Subagente `game-jam` en `.claude/agents/game-jam.md`: recibe un juego y N; escribe N specs variantes en `specs/game-jam/<id>/NN-*.md` (solo specs, sin código).
 - Hook `PostToolUse` (`Write`) en `.claude/settings.json` → `.claude/hooks/format-file.mjs`: Prettier + ESLint `--fix` al archivo escrito.
 - `hooks/use-reveal.ts` (raíz) es un hook de React (reveal on scroll), no de Claude.
