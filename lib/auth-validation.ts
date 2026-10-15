@@ -2,10 +2,12 @@ export const AUTH_LIMITS = {
   usernameMin: 3,
   usernameMax: 10,
   passwordMin: 8,
+  passwordMax: 72,
   email: 254,
 } as const;
 
 const USERNAME_RE = /^[A-Z0-9_]+$/;
+const CONTROL_OR_BACKSLASH_RE = /[\\\u0000-\u001f\u007f]/;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function normalizeUsername(raw: string): string {
@@ -41,6 +43,9 @@ export function passwordError(password: string): string | null {
   if (password.length < AUTH_LIMITS.passwordMin) {
     return `La contraseña debe tener al menos ${AUTH_LIMITS.passwordMin} caracteres`;
   }
+  if (password.length > AUTH_LIMITS.passwordMax) {
+    return `La contraseña no puede superar ${AUTH_LIMITS.passwordMax} caracteres`;
+  }
   return null;
 }
 
@@ -66,8 +71,17 @@ export function validateSignUp(i: {
 // Solo rutas relativas internas; cualquier otra cosa cae en "/".
 export function safeNext(raw: unknown): string {
   if (typeof raw !== "string") return "/";
-  if (!raw.startsWith("/") || raw.startsWith("//") || raw.includes("\\"))
+  if (
+    !raw.startsWith("/") ||
+    raw.startsWith("//") ||
+    CONTROL_OR_BACKSLASH_RE.test(raw)
+  )
     return "/";
+  try {
+    if (new URL(raw, "http://x").origin !== "http://x") return "/";
+  } catch {
+    return "/";
+  }
   return raw;
 }
 

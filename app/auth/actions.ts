@@ -1,6 +1,5 @@
 "use server";
 
-import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   emailError,
@@ -12,6 +11,7 @@ import {
   type AuthField,
   type AuthState,
 } from "@/lib/auth-validation";
+import { getSiteUrl } from "@/lib/site-url";
 import { createClient } from "@/lib/supabase/server";
 
 const text = (formData: FormData, key: string) => {
@@ -119,13 +119,8 @@ export async function signOut(): Promise<void> {
   redirect("/");
 }
 
-async function callbackUrl(next: string): Promise<string> {
-  const h = await headers();
-  const host = h.get("x-forwarded-host") ?? h.get("host");
-  const proto =
-    h.get("x-forwarded-proto") ??
-    (host?.startsWith("localhost") ? "http" : "https");
-  return `${proto}://${host}/auth/callback?next=${encodeURIComponent(next)}`;
+function callbackUrl(next: string): string {
+  return `${getSiteUrl()}/auth/callback?next=${encodeURIComponent(next)}`;
 }
 
 const PROVIDERS = ["google", "github"] as const;
@@ -135,7 +130,7 @@ export async function signInWithProvider(formData: FormData): Promise<void> {
   const next = safeNext(text(formData, "next"));
   if (!provider) redirect("/auth?error=oauth");
 
-  const redirectTo = await callbackUrl(next);
+  const redirectTo = callbackUrl(next);
 
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -193,7 +188,7 @@ export async function requestPasswordReset(
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: await callbackUrl("/auth/nueva-clave"),
+    redirectTo: callbackUrl("/auth/nueva-clave"),
   });
   if (error) {
     return fail(
@@ -235,6 +230,9 @@ export async function updatePassword(
     }
     return fail("No se pudo cambiar la contraseña. Inténtalo de nuevo");
   }
+
+  // Cierra las demás sesiones; si falla no bloquea el cambio de clave.
+  await supabase.auth.signOut({ scope: "others" });
 
   redirect("/");
 }
