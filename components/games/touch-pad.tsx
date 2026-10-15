@@ -5,13 +5,24 @@ import {
   useEffect,
   useRef,
   useState,
+  type MouseEvent,
   type PointerEvent,
 } from "react";
-import type { TouchButton, TouchConfig } from "@/lib/games/types";
+import type { SkinId, TouchButton, TouchConfig } from "@/lib/games/types";
 
 type Props = {
   config: TouchConfig;
   disabled: boolean;
+  skin: SkinId;
+};
+
+type Dir = "up" | "right" | "down" | "left";
+
+const ARROWS: Record<Dir, string> = {
+  up: "M12 4 L20 16 L4 16 Z",
+  right: "M8 4 L20 12 L8 20 Z",
+  down: "M4 8 L20 8 L12 20 Z",
+  left: "M16 4 L16 20 L4 12 Z",
 };
 
 const REPEAT_DELAY_MS = 250;
@@ -34,7 +45,7 @@ function dispatchKey(type: "keydown" | "keyup", btn: TouchButton) {
   );
 }
 
-export function TouchPad({ config, disabled }: Props) {
+export function TouchPad({ config, disabled, skin }: Props) {
   const [pressed, setPressed] = useState<ReadonlySet<string>>(new Set());
   const heldRef = useRef(new Map<string, Held>());
 
@@ -110,44 +121,74 @@ export function TouchPad({ config, disabled }: Props) {
     };
   }, [releaseAll]);
 
-  const renderBtn = (btn: TouchButton | undefined, cls: string) => {
-    if (!btn) return <span className={`av-touchpad-gap ${cls}`} aria-hidden />;
+  const handlers = (btn: TouchButton) => ({
+    onPointerDown: (e: PointerEvent<HTMLButtonElement>) => press(e, btn),
+    onPointerMove: (e: PointerEvent<HTMLButtonElement>) => move(e, btn),
+    onPointerUp: () => release(btn.code),
+    onPointerCancel: () => release(btn.code),
+    onPointerLeave: () => release(btn.code),
+    onContextMenu: (e: MouseEvent<HTMLButtonElement>) => e.preventDefault(),
+  });
+
+  const { dpad, actions } = config;
+
+  const renderDir = (dir: Dir) => {
+    const btn = dpad[dir];
     return (
       <button
         type="button"
-        className={`av-touchpad-btn ${cls}${pressed.has(btn.code) ? " pressed" : ""}`}
-        disabled={disabled}
-        onPointerDown={(e) => press(e, btn)}
-        onPointerMove={(e) => move(e, btn)}
-        onPointerUp={() => release(btn.code)}
-        onPointerCancel={() => release(btn.code)}
-        onPointerLeave={() => release(btn.code)}
-        onContextMenu={(e) => e.preventDefault()}
+        className={`av-gp-dp av-gp-dp-${dir}${btn && pressed.has(btn.code) ? " on" : ""}`}
+        aria-label={btn?.label ?? dir}
+        disabled={!btn || disabled}
+        {...(btn ? handlers(btn) : {})}
       >
-        {btn.label}
+        <svg className="av-gp-arrow" viewBox="0 0 24 24" aria-hidden>
+          <path d={ARROWS[dir]} fill="currentColor" />
+        </svg>
       </button>
     );
   };
 
-  const { dpad, actions } = config;
+  const renderAction = (letter: "A" | "B", btn: TouchButton | undefined) => (
+    <div className="av-gp-ab-wrap">
+      <button
+        type="button"
+        className={`av-gp-ab ${letter.toLowerCase()}${btn && pressed.has(btn.code) ? " on" : ""}`}
+        aria-label={btn?.label ?? letter}
+        disabled={!btn || disabled}
+        {...(btn ? handlers(btn) : {})}
+      >
+        <span className="av-gp-ring" aria-hidden />
+        <span className="av-gp-letter">{letter}</span>
+      </button>
+      <span className="av-gp-label" aria-hidden>
+        {btn?.label}
+      </span>
+    </div>
+  );
 
   return (
-    <div className="av-touchpad" aria-label="Controles táctiles">
-      <div className="av-touchpad-dpad">
-        {renderBtn(dpad.up, "up")}
-        {renderBtn(dpad.left, "left")}
-        {renderBtn(dpad.right, "right")}
-        {renderBtn(dpad.down, "down")}
-      </div>
-      {actions && actions.length > 0 && (
-        <div className="av-touchpad-actions">
-          {actions.map((a) => (
-            <span key={a.code} className="av-touchpad-action">
-              {renderBtn(a, "action")}
-            </span>
-          ))}
+    <div
+      className="av-gp"
+      data-skin={skin}
+      role="group"
+      aria-label="Controles táctiles"
+    >
+      <div className="av-gp-body">
+        <div className="av-gp-dpad" role="group" aria-label="D-pad">
+          {renderDir("up")}
+          {renderDir("right")}
+          {renderDir("down")}
+          {renderDir("left")}
+          <div className="av-gp-hub" aria-hidden>
+            <span className="av-gp-gem" />
+          </div>
         </div>
-      )}
+        <div className="av-gp-actions">
+          {renderAction("B", actions?.[1])}
+          {renderAction("A", actions?.[0])}
+        </div>
+      </div>
     </div>
   );
 }

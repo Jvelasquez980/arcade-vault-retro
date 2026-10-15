@@ -247,7 +247,7 @@ export function GamePlayer({ game }: { game: Game }) {
         </div>
       </div>
 
-      {def?.touch && <TouchPad config={def.touch} disabled={paused || over} />}
+      {def?.touch && <TouchPad config={def.touch} disabled={paused || over} skin={skin} />}
 
       {over && (
         <div className="modal-bd">
