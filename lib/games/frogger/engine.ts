@@ -1,7 +1,13 @@
 // Motor de Frogger escrito desde cero (SPEC game-jam/frogger/02). Primitivas
 // canvas, sin sprites. Sin globals de módulo: el estado vive en la instancia.
 
-import type { GameController, GameEngineDef, GameEvents } from "../types";
+import type {
+  GameController,
+  GameEngineDef,
+  GameEvents,
+  SkinId,
+} from "../types";
+import { froggerSkins } from "./skins";
 
 export const COLS = 16;
 export const ROWS = 14;
@@ -73,18 +79,117 @@ type LaneDef = {
 
 const LANE_DEFS: LaneDef[] = [
   // Carretera (filas 8–12)
-  { row: 8, type: "truck", width: 3, gap: 5, count: 3, speed: 1.5, dir: -1, offset: 2 },
-  { row: 9, type: "car", width: 1, gap: 4, count: 4, speed: 2.5, dir: 1, offset: 0 },
-  { row: 10, type: "car", width: 2, gap: 4, count: 3, speed: 2, dir: -1, offset: 5 },
-  { row: 11, type: "truck", width: 3, gap: 6, count: 3, speed: 3, dir: 1, offset: 3 },
-  { row: 12, type: "car", width: 1, gap: 5, count: 3, speed: 4, dir: -1, offset: 1 },
+  {
+    row: 8,
+    type: "truck",
+    width: 3,
+    gap: 5,
+    count: 3,
+    speed: 1.5,
+    dir: -1,
+    offset: 2,
+  },
+  {
+    row: 9,
+    type: "car",
+    width: 1,
+    gap: 4,
+    count: 4,
+    speed: 2.5,
+    dir: 1,
+    offset: 0,
+  },
+  {
+    row: 10,
+    type: "car",
+    width: 2,
+    gap: 4,
+    count: 3,
+    speed: 2,
+    dir: -1,
+    offset: 5,
+  },
+  {
+    row: 11,
+    type: "truck",
+    width: 3,
+    gap: 6,
+    count: 3,
+    speed: 3,
+    dir: 1,
+    offset: 3,
+  },
+  {
+    row: 12,
+    type: "car",
+    width: 1,
+    gap: 5,
+    count: 3,
+    speed: 4,
+    dir: -1,
+    offset: 1,
+  },
   // Río (filas 1–6)
-  { row: 1, type: "log", width: 3, gap: 4, count: 3, speed: 1.2, dir: 1, offset: 1 },
-  { row: 2, type: "turtle", width: 2, gap: 3, count: 4, speed: 1.5, dir: -1, offset: 0 },
-  { row: 3, type: "log", width: 4, gap: 4, count: 3, speed: 2.5, dir: 1, offset: 6 },
-  { row: 4, type: "log", width: 2, gap: 3, count: 4, speed: 1, dir: 1, offset: 2 },
-  { row: 5, type: "turtle", width: 3, gap: 3, count: 4, speed: 1.8, dir: -1, offset: 4 },
-  { row: 6, type: "log", width: 3, gap: 4, count: 3, speed: 3, dir: -1, offset: 0 },
+  {
+    row: 1,
+    type: "log",
+    width: 3,
+    gap: 4,
+    count: 3,
+    speed: 1.2,
+    dir: 1,
+    offset: 1,
+  },
+  {
+    row: 2,
+    type: "turtle",
+    width: 2,
+    gap: 3,
+    count: 4,
+    speed: 1.5,
+    dir: -1,
+    offset: 0,
+  },
+  {
+    row: 3,
+    type: "log",
+    width: 4,
+    gap: 4,
+    count: 3,
+    speed: 2.5,
+    dir: 1,
+    offset: 6,
+  },
+  {
+    row: 4,
+    type: "log",
+    width: 2,
+    gap: 3,
+    count: 4,
+    speed: 1,
+    dir: 1,
+    offset: 2,
+  },
+  {
+    row: 5,
+    type: "turtle",
+    width: 3,
+    gap: 3,
+    count: 4,
+    speed: 1.8,
+    dir: -1,
+    offset: 4,
+  },
+  {
+    row: 6,
+    type: "log",
+    width: 3,
+    gap: 4,
+    count: 3,
+    speed: 3,
+    dir: -1,
+    offset: 0,
+  },
 ];
 
 export function buildLanes(level: number): Lane[] {
@@ -93,7 +198,11 @@ export function buildLanes(level: number): Lane[] {
     const step = d.width + d.gap;
     const entities: Entity[] = [];
     for (let i = 0; i < d.count; i++) {
-      const e: Entity = { col: d.offset + i * step, width: d.width, type: d.type };
+      const e: Entity = {
+        col: d.offset + i * step,
+        width: d.width,
+        type: d.type,
+      };
       if (d.type === "turtle") {
         e.phase = Math.random() * TURTLE_CYCLE_MS;
         e.submerged = e.phase >= TURTLE_VISIBLE_MS;
@@ -124,28 +233,6 @@ const ROUND_POINTS = 200;
 const MOUTH_COUNT = 5;
 const mouthStartCol = (i: number) => 1 + i * 3;
 
-const C = {
-  road: "#0a0a12",
-  roadLine: "rgba(255,255,255,0.18)",
-  river: "#0a2a5a",
-  safe: "#0c3a1c",
-  wall: "#06260f",
-  mouth: "#2fd45a",
-  mouthEdge: "#ffd400",
-  log: "#7a4a1e",
-  logLine: "#5a3412",
-  turtle: "#1fae5a",
-  turtleShell: "#128a40",
-  turtleGhost: "rgba(31,174,90,0.28)",
-  truck: "#9aa0a6",
-  truckCab: "#d8dde2",
-  cars: ["#e63946", "#ffd400", "#2d7bff"],
-  wheel: "#111",
-  frog: "#39ff14",
-  frogDark: "#1fae0c",
-  text: "#fff",
-};
-
 const KEY_DIRS: Record<string, Direction> = {
   ArrowUp: "up",
   w: "up",
@@ -164,16 +251,44 @@ const DIR_DELTA: Record<Direction, { dc: number; dr: number }> = {
   right: { dc: 1, dr: 0 },
 };
 
-const isRiverRow = (row: number) => row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT;
+const isRiverRow = (row: number) =>
+  row >= ROW_RIVER_TOP && row <= ROW_RIVER_BOT;
 
 export function createFrogger(
   canvas: HTMLCanvasElement,
   events: GameEvents,
+  skin: SkinId = "classic",
 ): GameController {
   const ctx = canvas.getContext("2d");
   if (!ctx) {
     return { pause() {}, resume() {}, restart() {}, destroy() {} };
   }
+
+  // ── Skin (por instancia) ────────────────────────────────────────────────────
+  const C = froggerSkins[skin] ?? froggerSkins.classic;
+  ctx.imageSmoothingEnabled = !C.hard;
+  let scanPattern: CanvasPattern | null = null;
+  if (C.scanlines) {
+    // Patrón 1×3 (1 línea oscura cada 3 px): un solo fillRect por frame.
+    const tile = document.createElement("canvas");
+    tile.width = 1;
+    tile.height = 3;
+    const tc = tile.getContext("2d");
+    if (tc) {
+      tc.fillStyle = C.scanlines;
+      tc.fillRect(0, 2, 1, 1);
+      scanPattern = ctx.createPattern(tile, "repeat");
+    }
+  }
+  /** Activa glow (neón) con el color dado; noGlow() lo restaura. */
+  const glow = (c: CanvasRenderingContext2D, color: string) => {
+    if (!C.glow) return;
+    c.shadowColor = color;
+    c.shadowBlur = C.glow;
+  };
+  const noGlow = (c: CanvasRenderingContext2D) => {
+    if (C.glow) c.shadowBlur = 0;
+  };
 
   // ── Estado ──────────────────────────────────────────────────────────────────
   let lanes: Lane[] = [];
@@ -313,6 +428,14 @@ export function createFrogger(
   }
 
   function killFrog() {
+    if (finished) return;
+    lives--;
+    emit(); // onLives(lives) antes de un posible onGameOver
+    if (lives <= 0) {
+      finished = true;
+      events.onGameOver(score);
+      return;
+    }
     respawn();
   }
 
@@ -381,43 +504,67 @@ export function createFrogger(
   }
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
-  function drawEntity(c: CanvasRenderingContext2D, lane: Lane, e: Entity, idx: number) {
+  function drawEntity(
+    c: CanvasRenderingContext2D,
+    lane: Lane,
+    e: Entity,
+    idx: number,
+  ) {
     const x = e.col * CELL;
     const y = lane.row * CELL;
     const w = e.width * CELL;
     switch (e.type) {
       case "car": {
-        c.fillStyle = C.cars[(lane.row + idx) % C.cars.length];
-        c.fillRect(x + 2, y + 8, w - 4, CELL - 16);
+        // Vista cenital: ruedas asomando arriba/abajo, carrocería encima y
+        // parabrisas hacia el sentido de avance.
+        const color = C.cars[(lane.row + idx) % C.cars.length];
+        const bx = x + 3;
+        const bw = w - 6;
         c.fillStyle = C.wheel;
-        c.beginPath();
-        c.arc(x + 10, y + CELL - 8, 5, 0, Math.PI * 2);
-        c.arc(x + w - 10, y + CELL - 8, 5, 0, Math.PI * 2);
-        c.arc(x + 10, y + 8, 5, 0, Math.PI * 2);
-        c.arc(x + w - 10, y + 8, 5, 0, Math.PI * 2);
-        c.fill();
+        for (const wx of [bx + 4, bx + bw - 12]) {
+          c.fillRect(wx, y + 7, 8, 4);
+          c.fillRect(wx, y + CELL - 11, 8, 4);
+        }
+        glow(c, color);
+        c.fillStyle = color;
+        c.fillRect(bx, y + 10, bw, CELL - 20);
+        noGlow(c);
+        c.fillStyle = C.carGlass;
+        const front = lane.dir === 1 ? bx + bw - 13 : bx + 7;
+        const rear = lane.dir === 1 ? bx + 5 : bx + bw - 9;
+        c.fillRect(front, y + 13, 6, CELL - 26);
+        c.fillRect(rear, y + 14, 4, CELL - 28);
         break;
       }
       case "truck": {
         const cabW = CELL - 4;
+        c.fillStyle = C.wheel;
+        for (const wx of [x + 10, x + w / 2 - 4, x + w - 18]) {
+          c.fillRect(wx, y + 3, 8, 4);
+          c.fillRect(wx, y + CELL - 7, 8, 4);
+        }
+        glow(c, C.truck);
         c.fillStyle = C.truck;
         c.fillRect(x + 2, y + 6, w - 4, CELL - 12);
+        noGlow(c);
         c.fillStyle = C.truckCab;
         // Cabina en el lado hacia el que avanza.
         const cabX = lane.dir === 1 ? x + w - 2 - cabW : x + 2;
         c.fillRect(cabX, y + 6, cabW, CELL - 12);
-        c.fillStyle = C.wheel;
-        for (const wx of [x + 16, x + w / 2, x + w - 16]) {
-          c.beginPath();
-          c.arc(wx, y + 6, 4, 0, Math.PI * 2);
-          c.arc(wx, y + CELL - 6, 4, 0, Math.PI * 2);
-          c.fill();
-        }
+        c.fillStyle = C.carGlass;
+        c.fillRect(
+          lane.dir === 1 ? cabX + cabW - 10 : cabX + 4,
+          y + 10,
+          6,
+          CELL - 20,
+        );
         break;
       }
       case "log": {
+        glow(c, C.log);
         c.fillStyle = C.log;
         c.fillRect(x + 1, y + 6, w - 2, CELL - 12);
+        noGlow(c);
         c.strokeStyle = C.logLine;
         c.lineWidth = 2;
         c.beginPath();
@@ -438,10 +585,12 @@ export function createFrogger(
             c.arc(cx, cy, 14, 0, Math.PI * 2);
             c.fill();
           } else {
+            glow(c, C.turtle);
             c.fillStyle = C.turtle;
             c.beginPath();
             c.arc(cx, cy, 15, 0, Math.PI * 2);
             c.fill();
+            noGlow(c);
             c.strokeStyle = C.turtleShell;
             c.lineWidth = 2;
             c.beginPath();
@@ -458,7 +607,12 @@ export function createFrogger(
     }
   }
 
-  function drawFrog(c: CanvasRenderingContext2D, x: number, y: number, jumping: boolean) {
+  function drawFrog(
+    c: CanvasRenderingContext2D,
+    x: number,
+    y: number,
+    jumping: boolean,
+  ) {
     const cx = x + CELL / 2;
     const cy = y + CELL / 2;
     c.fillStyle = C.frogDark;
@@ -471,16 +625,18 @@ export function createFrogger(
         c.fill();
       }
     }
+    glow(c, C.frog);
     c.fillStyle = C.frog;
     c.beginPath();
     c.ellipse(cx, cy, 14, 12, 0, 0, Math.PI * 2);
     c.fill();
-    c.fillStyle = "#fff";
+    noGlow(c);
+    c.fillStyle = C.eye;
     c.beginPath();
     c.arc(cx - 6, cy - 9, 4, 0, Math.PI * 2);
     c.arc(cx + 6, cy - 9, 4, 0, Math.PI * 2);
     c.fill();
-    c.fillStyle = "#000";
+    c.fillStyle = C.pupil;
     c.beginPath();
     c.arc(cx - 6, cy - 9, 2, 0, Math.PI * 2);
     c.arc(cx + 6, cy - 9, 2, 0, Math.PI * 2);
@@ -492,12 +648,22 @@ export function createFrogger(
     c.fillStyle = C.wall;
     c.fillRect(0, ROW_GOALS * CELL, CANVAS_W, CELL);
     c.fillStyle = C.river;
-    c.fillRect(0, ROW_RIVER_TOP * CELL, CANVAS_W, (ROW_RIVER_BOT - ROW_RIVER_TOP + 1) * CELL);
+    c.fillRect(
+      0,
+      ROW_RIVER_TOP * CELL,
+      CANVAS_W,
+      (ROW_RIVER_BOT - ROW_RIVER_TOP + 1) * CELL,
+    );
     c.fillStyle = C.safe;
     c.fillRect(0, ROW_SAFE_MID * CELL, CANVAS_W, CELL);
     c.fillRect(0, ROW_START * CELL, CANVAS_W, CELL);
     c.fillStyle = C.road;
-    c.fillRect(0, ROW_ROAD_TOP * CELL, CANVAS_W, (ROW_ROAD_BOT - ROW_ROAD_TOP + 1) * CELL);
+    c.fillRect(
+      0,
+      ROW_ROAD_TOP * CELL,
+      CANVAS_W,
+      (ROW_ROAD_BOT - ROW_ROAD_TOP + 1) * CELL,
+    );
     c.strokeStyle = C.roadLine;
     c.lineWidth = 2;
     c.setLineDash([16, 16]);
@@ -514,9 +680,11 @@ export function createFrogger(
       const x = mouthStartCol(i) * CELL;
       c.fillStyle = C.mouth;
       c.fillRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
+      glow(c, C.mouthEdge);
       c.strokeStyle = C.mouthEdge;
       c.lineWidth = 2;
       c.strokeRect(x + 2, 20, 2 * CELL - 4, CELL - 20);
+      noGlow(c);
       if (goals[i]) drawFrog(c, x + CELL / 2, -2, false);
     }
 
@@ -537,7 +705,8 @@ export function createFrogger(
 
     // HUD interno
     const ratio = Math.max(0, timeLeft / roundTime());
-    c.fillStyle = ratio > 0.5 ? "#39ff14" : ratio > 0.25 ? "#ffd400" : "#ff2d2d";
+    c.fillStyle =
+      ratio > 0.5 ? C.timer[0] : ratio > 0.25 ? C.timer[1] : C.timer[2];
     c.fillRect(0, 0, CANVAS_W * ratio, 4);
     c.fillStyle = C.text;
     c.font = "bold 14px monospace";
@@ -551,6 +720,11 @@ export function createFrogger(
       c.beginPath();
       c.arc(CANVAS_W - 14 - i * 20, 13, 6, 0, Math.PI * 2);
       c.fill();
+    }
+
+    if (scanPattern) {
+      c.fillStyle = scanPattern;
+      c.fillRect(0, 0, CANVAS_W, CANVAS_H);
     }
   }
 
@@ -582,7 +756,9 @@ export function createFrogger(
     const t = e.target;
     return (
       t instanceof HTMLElement &&
-      (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.tagName === "SELECT")
+      (t.tagName === "INPUT" ||
+        t.tagName === "TEXTAREA" ||
+        t.tagName === "SELECT")
     );
   }
 
@@ -644,5 +820,14 @@ export const froggerDef: GameEngineDef = {
   height: CANVAS_H,
   initialLives: START_LIVES,
   showLevel: true,
+  // Un salto por toque: sin repeat (el motor además ignora e.repeat).
+  touch: {
+    dpad: {
+      up: { key: "ArrowUp", code: "ArrowUp", label: "▲" },
+      left: { key: "ArrowLeft", code: "ArrowLeft", label: "◀" },
+      right: { key: "ArrowRight", code: "ArrowRight", label: "▶" },
+      down: { key: "ArrowDown", code: "ArrowDown", label: "▼" },
+    },
+  },
   create: createFrogger,
 };

@@ -7,6 +7,7 @@ export const ENGINES: Record<string, () => Promise<GameEngineDef>> = {
   tetris: () => import("./tetris/engine").then((m) => m.tetrisDef),
   arkanoid: () => import("./arkanoid/engine").then((m) => m.arkanoidDef),
   snake: () => import("./snake/engine").then((m) => m.snakeDef),
+  frogger: () => import("./frogger/engine").then((m) => m.froggerDef),
 };
 
 export const hasEngine = (id: string) => id in ENGINES;
