@@ -25,16 +25,16 @@ export async function getTopScores(
   return (data as Row[]).map(toRow);
 }
 
-export async function getBestByName(
+export async function getBestByUser(
   gameId: string,
-  name: string,
+  userId: string,
 ): Promise<ScoreRow | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("scores")
     .select("name, score, created_at")
     .eq("game_id", gameId)
-    .eq("name", name)
+    .eq("user_id", userId)
     .order("score", { ascending: false })
     .order("created_at", { ascending: true })
     .limit(1)

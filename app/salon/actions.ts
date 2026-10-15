@@ -1,12 +1,19 @@
 "use server";
 
-import { getBestByName } from "@/lib/leaderboard";
+import { getBestByUser } from "@/lib/leaderboard";
 import type { ScoreRow } from "@/lib/leaderboard";
+import { createClient } from "@/lib/supabase/server";
 
-export async function getMyBest(gameId: string, name: string): Promise<ScoreRow | null> {
-  if (typeof gameId !== "string" || typeof name !== "string" || !name.trim()) return null;
+// Mejor puntaje del usuario de la sesión; el id nunca viene del cliente.
+export async function getMyBest(gameId: string): Promise<ScoreRow | null> {
+  if (typeof gameId !== "string") return null;
   try {
-    return await getBestByName(gameId, name.trim());
+    const supabase = await createClient();
+    const {
+      data: { user },
+    } = await supabase.auth.getUser();
+    if (!user) return null;
+    return await getBestByUser(gameId, user.id);
   } catch {
     return null;
   }

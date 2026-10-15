@@ -47,19 +47,19 @@ export function HallOfFame({ games, scoresByGame }: Props) {
   const tab = selected ?? games[0]?.id ?? null;
   const game = games.find((g) => g.id === tab) ?? null;
   const rows = (tab && scoresByGame[tab]) || [];
-  const userName = user?.name ?? null;
-  const key = tab && userName ? `${tab}\u0000${userName}` : null;
+  const userId = user?.id ?? null;
+  const key = tab && userId ? `${tab}\u0000${userId}` : null;
 
   useEffect(() => {
-    if (!tab || !userName || !key) return;
+    if (!tab || !userId || !key) return;
     let cancelled = false;
-    getMyBest(tab, userName).then((row) => {
+    getMyBest(tab).then((row) => {
       if (!cancelled) setMine({ key, row });
     });
     return () => {
       cancelled = true;
     };
-  }, [tab, userName, key]);
+  }, [tab, userId, key]);
 
   const myRow = mine && mine.key === key ? mine.row : null;
   const loadedMine = mine !== null && mine.key === key;
