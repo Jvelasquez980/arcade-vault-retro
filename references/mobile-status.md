@@ -14,4 +14,4 @@ Leyenda: ✅ verificado por código · ❌ pendiente. Una fila por juego de `imp
 
 Notas:
 
-- frogger aún no figura en `implemented-games.md` (spec game-jam/frogger/02 en curso); fila añadida al portarlo.
+- frogger ya figura en `implemented-games.md`.

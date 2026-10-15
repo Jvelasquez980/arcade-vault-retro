@@ -4,3 +4,4 @@
 | `tetris` | TETRIS | PUZZLE | Encaja las piezas y completa líneas. | magenta |
 | `arkanoid` | ARKANOID | ARCADE | Rompe todos los bloques con la pelota. | yellow |
 | `snake` | SNAKE | ARCADE | Come frutas y crece sin chocar. | green |
+| `frogger` | FROGGER | ARCADE | Cruza la carretera y el río sin morir. | lime |

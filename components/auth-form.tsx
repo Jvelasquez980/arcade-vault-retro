@@ -1,27 +1,145 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
-import { useSession } from "@/components/session-provider";
+import Link from "next/link";
+import { useActionState, useState } from "react";
+import { signIn, signInWithProvider, signUp } from "@/app/auth/actions";
+import { AUTH_LIMITS, type AuthState } from "@/lib/auth-validation";
 
-export function AuthForm() {
-  const router = useRouter();
-  const { login, logout } = useSession();
+const initial: AuthState = {};
+
+function FieldError({ state, field }: { state: AuthState; field: string }) {
+  if (!state.error || state.field !== field) return null;
+  return (
+    <div className="field-error" role="alert">
+      {state.error}
+    </div>
+  );
+}
+
+// Errores sin campo concreto (credenciales, fallos del servidor).
+function FormError({ state }: { state: AuthState }) {
+  if (!state.error || state.field) return null;
+  return (
+    <div className="auth-error" role="alert">
+      {state.error}
+    </div>
+  );
+}
+
+function SignInForm({ next }: { next: string }) {
+  const [state, action, pending] = useActionState(signIn, initial);
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="next" value={next} />
+      <div className="field">
+        <label htmlFor="si-email">Correo electrónico</label>
+        <input
+          id="si-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          maxLength={AUTH_LIMITS.email}
+          defaultValue={state.values?.email}
+          placeholder="jugador@vault.gg"
+        />
+      </div>
+      <div className="field">
+        <label htmlFor="si-pass">Contraseña</label>
+        <input
+          id="si-pass"
+          name="password"
+          type="password"
+          autoComplete="current-password"
+          required
+          placeholder="••••••••"
+        />
+      </div>
+      <FormError state={state} />
+      <button
+        className="btn lg"
+        type="submit"
+        disabled={pending}
+        style={{ width: "100%", marginTop: 8 }}
+      >
+        {pending ? "ENTRANDO…" : "ENTRAR AL VAULT"}
+      </button>
+      <Link href="/auth/recuperar" className="auth-link">
+        ¿Olvidaste tu contraseña?
+      </Link>
+    </form>
+  );
+}
+
+function SignUpForm({ next }: { next: string }) {
+  const [state, action, pending] = useActionState(signUp, initial);
+
+  return (
+    <form action={action}>
+      <input type="hidden" name="next" value={next} />
+      <div className="field">
+        <label htmlFor="su-user">Usuario</label>
+        <input
+          id="su-user"
+          name="username"
+          autoComplete="username"
+          required
+          minLength={AUTH_LIMITS.usernameMin}
+          maxLength={AUTH_LIMITS.usernameMax}
+          pattern="[A-Za-z0-9_]+"
+          title="Letras, números y guion bajo"
+          defaultValue={state.values?.username}
+          placeholder="PX_KAI"
+          style={{ textTransform: "uppercase" }}
+          aria-invalid={state.field === "username"}
+        />
+        <FieldError state={state} field="username" />
+      </div>
+      <div className="field">
+        <label htmlFor="su-email">Correo electrónico</label>
+        <input
+          id="su-email"
+          name="email"
+          type="email"
+          autoComplete="email"
+          required
+          maxLength={AUTH_LIMITS.email}
+          defaultValue={state.values?.email}
+          placeholder="jugador@vault.gg"
+          aria-invalid={state.field === "email"}
+        />
+        <FieldError state={state} field="email" />
+      </div>
+      <div className="field">
+        <label htmlFor="su-pass">Contraseña</label>
+        <input
+          id="su-pass"
+          name="password"
+          type="password"
+          autoComplete="new-password"
+          required
+          minLength={AUTH_LIMITS.passwordMin}
+          placeholder={`Mínimo ${AUTH_LIMITS.passwordMin} caracteres`}
+          aria-invalid={state.field === "password"}
+        />
+        <FieldError state={state} field="password" />
+      </div>
+      <FormError state={state} />
+      <button
+        className="btn lg"
+        type="submit"
+        disabled={pending}
+        style={{ width: "100%", marginTop: 8 }}
+      >
+        {pending ? "CREANDO…" : "CREAR Y JUGAR"}
+      </button>
+    </form>
+  );
+}
+
+export function AuthForm({ next, error }: { next: string; error?: string }) {
   const [tab, setTab] = useState<"in" | "up">("in");
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
-  const [email, setEmail] = useState("");
-
-  const submit = (e: React.FormEvent) => {
-    e.preventDefault();
-    login({ name: (user || "PLAYER1").toUpperCase().slice(0, 10) });
-    router.push("/");
-  };
-
-  const guest = () => {
-    logout();
-    router.push("/");
-  };
 
   return (
     <div className="av-auth-wrap fade-in">
@@ -43,59 +161,58 @@ export function AuthForm() {
         </div>
 
         <div className="auth-tabs">
-          <button type="button" className={tab === "in" ? "on" : ""} onClick={() => setTab("in")}>
+          <button
+            type="button"
+            className={tab === "in" ? "on" : ""}
+            onClick={() => setTab("in")}
+          >
             INICIAR SESIÓN
           </button>
-          <button type="button" className={tab === "up" ? "on" : ""} onClick={() => setTab("up")}>
+          <button
+            type="button"
+            className={tab === "up" ? "on" : ""}
+            onClick={() => setTab("up")}
+          >
             CREAR CUENTA
           </button>
         </div>
 
-        <form onSubmit={submit}>
-          <div className="field">
-            <label>Usuario</label>
-            <input value={user} onChange={(e) => setUser(e.target.value)} placeholder="px_kai" />
+        {error && (
+          <div className="auth-error" role="alert">
+            {error}
           </div>
-          {tab === "up" && (
-            <div className="field slide-in">
-              <label>Correo electrónico</label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="jugador@vault.gg"
-              />
-            </div>
-          )}
-          <div className="field">
-            <label>Contraseña</label>
-            <input
-              type="password"
-              value={pass}
-              onChange={(e) => setPass(e.target.value)}
-              placeholder="••••••••"
-            />
-          </div>
+        )}
 
-          <button className="btn lg" type="submit" style={{ width: "100%", marginTop: 8 }}>
-            {tab === "in" ? "ENTRAR AL VAULT" : "CREAR Y JUGAR"}
-          </button>
-        </form>
+        {tab === "in" ? <SignInForm next={next} /> : <SignUpForm next={next} />}
 
-        <button
-          type="button"
+        <Link
+          href="/"
           className="btn ghost"
           style={{ width: "100%", marginTop: 10 }}
-          onClick={guest}
         >
           JUGAR COMO INVITADO
-        </button>
+        </Link>
 
         <div className="auth-divider">O CONTINÚA CON</div>
-        <div className="social">
-          <button className="btn ghost" type="button">◆  GOOGLE</button>
-          <button className="btn ghost" type="button">▣  GITHUB</button>
-        </div>
+        <form action={signInWithProvider} className="social">
+          <input type="hidden" name="next" value={next} />
+          <button
+            className="btn ghost"
+            type="submit"
+            name="provider"
+            value="google"
+          >
+            ◆ GOOGLE
+          </button>
+          <button
+            className="btn ghost"
+            type="submit"
+            name="provider"
+            value="github"
+          >
+            ▣ GITHUB
+          </button>
+        </form>
 
         <div
           style={{
