@@ -8,5 +8,6 @@ Un juego cumple cuando tiene Clásico, Neón y Retro con contraste OK (texto ≥
 | tetris    | ✅      | ✅   | ✅    | 4.79:1         | 2026-10-14  |
 | arkanoid  | ✅      | ✅   | ✅    | 5.03:1         | 2026-10-14  |
 | snake     | ✅      | ✅   | ✅    | 7.12:1         | 2026-10-14  |
+| frogger   | ✅      | ✅   | ✅    | 3.14:1         | 2026-10-15  |
 
 Leyenda: ✅ hecho y verificado · ⚠ hecho con contraste por revisar · ❌ pendiente.

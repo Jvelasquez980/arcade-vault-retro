@@ -2,7 +2,13 @@
 import { SKINS, type SkinId } from "@/lib/games/types";
 
 // Juegos con skins implementadas (lib/games/<id>/skins.ts). El selector solo se muestra en ellos.
-const SKINNED_GAMES = new Set<string>(["asteroids", "snake", "tetris", "arkanoid"]);
+const SKINNED_GAMES = new Set<string>([
+  "asteroids",
+  "snake",
+  "tetris",
+  "arkanoid",
+  "frogger",
+]);
 
 export const hasSkins = (gameId: string) => SKINNED_GAMES.has(gameId);
 

@@ -39,7 +39,7 @@ No test runner configured.
 - Estilos: tokens y clases `av-*` en `app/globals.css` (tema retro/neón: cyan/magenta/yellow) expuestos a Tailwind vía `@theme inline`.
 
 ## Skills y hooks
-- Skills de proyecto en `.claude/skills/`: `spec`, `spec-impl`, `integrar-juego`.
+- Skills de proyecto en `.claude/skills/`: `spec`, `spec-impl`, `spec-impl-game` (= `spec-impl` + al final `skin-designer` y luego `mobile-porter`, en secuencia), `integrar-juego`.
 - Subagente `game-planner` en `.claude/agents/game-planner.md`: decide qué juego encaja; memoria/TODO de sugerencias en `references/game-suggestions-todo.md`.
 - Subagente `skin-designer` en `.claude/agents/skin-designer.md`: recibe un juego e implementa sus 3 skins (classic/neon/retro) con contraste sobre fondo oscuro; estado por juego en `references/skins-status.md`.
 - Subagente `mobile-porter` en `.claude/agents/mobile-porter.md`: recibe un juego y corrige solo código para web/móvil según SPEC 11 (sin Playwright); estado por juego en `references/mobile-status.md`.

@@ -451,6 +451,18 @@ a { color: inherit; text-decoration: none; }
   filter: drop-shadow(0 0 6px rgba(0,255,136,0.6));
 }
 
+.cover-frogger { background: linear-gradient(180deg,#0a1a3a 0 45%,#0a0a18 45% 100%); }
+.cover-frogger::after {
+  content: "";
+  position: absolute; inset: 0;
+  background:
+    radial-gradient(circle at 50% 72%, var(--green) 0 14px, transparent 15px) no-repeat,
+    linear-gradient(90deg, #8a5a2a 0 70px, transparent 70px) 15% 25% / 120px 12px no-repeat,
+    linear-gradient(90deg, var(--yellow) 0 36px, transparent 36px) 70% 25% / 60px 12px no-repeat,
+    linear-gradient(90deg, var(--magenta) 0 36px, transparent 36px) 20% 88% / 60px 12px no-repeat;
+  filter: drop-shadow(0 0 6px rgba(0,255,136,0.6));
+}
+
 .cover-glot { background: radial-gradient(circle at 50% 50%, #1a002a, #0a0a18); }
 .cover-glot::after {
   content: "";
