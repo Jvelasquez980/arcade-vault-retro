@@ -725,6 +725,10 @@ a { color: inherit; text-decoration: none; }
   pointer-events: none;
   mix-blend-mode: multiply;
 }
+/* Rendimiento en /jugar: sin blend sobre el canvas ni rejilla animada
+   (negro semitransparente en normal ≡ multiply). */
+body:has(.av-player) .av-bg::before { animation: none; }
+body:has(.av-player) .crt-screen::after { mix-blend-mode: normal; }
 .crt-screen::before {
   content: "";
   position: absolute; inset: 0;
