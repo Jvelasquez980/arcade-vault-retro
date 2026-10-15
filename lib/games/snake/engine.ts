@@ -65,6 +65,35 @@ export function createSnake(
     }
   }
 
+  // ── Fondo estático (offscreen, una vez por instancia) ───────────────────────
+  /** Fondo y rejilla de la skin. */
+  function paintBackground(c: CanvasRenderingContext2D) {
+    c.fillStyle = pal.bg;
+    c.fillRect(0, 0, SIZE, SIZE);
+
+    c.strokeStyle = pal.grid;
+    c.lineWidth = 1;
+    c.beginPath();
+    for (let i = 1; i < GRID; i++) {
+      c.moveTo(i * CELL + 0.5, 0);
+      c.lineTo(i * CELL + 0.5, SIZE);
+      c.moveTo(0, i * CELL + 0.5);
+      c.lineTo(SIZE, i * CELL + 0.5);
+    }
+    c.stroke();
+  }
+
+  const bg = document.createElement("canvas");
+  bg.width = SIZE;
+  bg.height = SIZE;
+  const bgCtx = bg.getContext("2d");
+  function renderBackground() {
+    if (!bgCtx) return;
+    bgCtx.imageSmoothingEnabled = !pal.hard;
+    paintBackground(bgCtx);
+  }
+  renderBackground();
+
   // ── Estado ──────────────────────────────────────────────────────────────────
   let body: Cell[] = [];
   let dir: Dir = { x: 1, y: 0 };
@@ -169,19 +198,8 @@ export function createSnake(
 
   // ── Dibujo ──────────────────────────────────────────────────────────────────
   function draw(c: CanvasRenderingContext2D) {
-    c.fillStyle = pal.bg;
-    c.fillRect(0, 0, SIZE, SIZE);
-
-    c.strokeStyle = pal.grid;
-    c.lineWidth = 1;
-    c.beginPath();
-    for (let i = 1; i < GRID; i++) {
-      c.moveTo(i * CELL + 0.5, 0);
-      c.lineTo(i * CELL + 0.5, SIZE);
-      c.moveTo(0, i * CELL + 0.5);
-      c.lineTo(SIZE, i * CELL + 0.5);
-    }
-    c.stroke();
+    if (bgCtx) c.drawImage(bg, 0, 0);
+    else paintBackground(c);
 
     if (fruit && img) {
       drawFruit(c, img, FRUITS[fruit.sprite], fruit.x, fruit.y, CELL);
